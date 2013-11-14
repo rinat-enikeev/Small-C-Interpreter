@@ -2,9 +2,31 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <iostream>
+
+#ifndef COMMON_ENUMS_DECL_H
+#include "commonEnums.h"
+#endif
+
 using namespace std;
 
 #define PROG_SIZE       10000
+
+
+struct commands { /* таблица зарезервированных слов */
+  char command[20];
+  char tok;
+} table[] = { /* В эту таблицу */
+  "if", IF, /* команды должны быть введены на нижнем регистре. */
+  "else", ELSE,
+  "for", FOR,
+  "do", DO,
+  "while", WHILE,
+  "char", CHAR,
+  "int", INT,
+  "return", RETURN,
+  "end", END,
+  "", END  /* конец таблицы */
+};
 
 void testcase_global_vars(void);
 int load_program(char *p, char *fname);
@@ -17,75 +39,6 @@ char token[80];	/* строковое представление лексемы */
 jmp_buf e_buf;   /* содержит данные для longjmp() */
 
 int get_token(void);
-
-/**********************************************************************/
-/* Типы лексем */
-enum tok_types {DELIMITER,  // знаки пунктуации и операторы
-				IDENTIFIER, // имена переменных и функций
-				NUMBER,     // числовая константа
-				KEYWORD,    // зарезервированные слова (while f.e.)
-                TEMP,		// вспомогательный тип токена для определения
-							// является токен KEYWORD или IDENTIFIER
-				STRING,		// строка
-				BLOCK,		// { или }
-				ARRAY};		// [ или ]
-
-/* Зарезервированные слова */
-enum tokens {ARG, 
-			CHAR, 
-			INT, 
-			IF, 
-			ELSE, 
-			FOR, 
-			DO, 
-			WHILE,
-            SWITCH, 
-			RETURN, 
-			EOL, 
-			FINISHED, 
-			END};
-
-struct commands { /* таблица зарезервированных слов */
-	char command[20];
-	char tok;
-} table[] = { /* В эту таблицу */
-	"if", IF, /* команды должны быть введены на нижнем регистре. */
-	"else", ELSE,
-	"for", FOR,
-	"do", DO,
-	"while", WHILE,
-	"char", CHAR,
-	"int", INT,
-	"return", RETURN,
-	"end", END,
-	"", END  /* конец таблицы */
-};
-
-
-/* Эти константы используются для вызова функции sntx_err()
-   в случае синтаксической ошибки. 
-   ВНИМАНИЕ: константа SYNTAX используется тогда, когда
-   интерпритатор не может квалифицировать ошибку.
-*/
-enum error_msg
-     {SYNTAX, UNBAL_PARENS, NO_EXP, EQUALS_EXPECTED,
-      NOT_VAR, PARAM_ERR, SEMI_EXPECTED,
-      UNBAL_BRACES, FUNC_UNDEF, TYPE_EXPECTED,
-      NEST_FUNC, RET_NOCALL, PAREN_EXPECTED,
-      WHILE_EXPECTED, QUOTE_EXPECTED, NOT_TEMP,
-      TOO_MANY_LVARS, DIV_BY_ZERO};
-
-enum double_ops {LT=1,  // < 
-				 LE,	// <=
-				 GT,	// >
-				 GE,	// >=
-				 EQ,	// == 
-				 NE};	// !=
-
-/**********************************************************************/
-
-
-
 
 int main(void)
 {

@@ -34,6 +34,7 @@ int get_token(void);
 
 void eval_exp(int *value);
 void eval_exp0(int *value);
+/*
 void eval_exp1(int *value);
 void eval_exp2(int *value);
 void eval_exp3(int *value);
@@ -83,6 +84,12 @@ void eval_exp0(int *value)
     if(token_type == IDENTIFIER) {
         if(is_var(token)) {  /* если эта переменная,
                               посмотреть, присваивается ли ей значение */
+            
+            if (is_arr(token)) {
+                sntx_err(SYNTAX); // todo: make message: redefinition of global array is illegal
+                exit(1);
+            }
+            
             strcpy(temp, token);
             temp_tok = token_type;
             get_token();
@@ -98,10 +105,25 @@ void eval_exp0(int *value)
                 token_type = temp_tok;
             }
         } else if (is_arr(token)) {
+            get_token();
+            if (*token != '[') {
+                sntx_err(SYNTAX);   // todo: make message: assigning array is illegal
+            }
+            get_token();
+            int arr_index;
+            if (token_type == NUMBER) { // index
+                arr_index = *value;
+            } else if (token_type == IDENTIFIER) {
+                eval_exp0(value);  /* вычислить присваемое значение */
+                
+            } else {
+                sntx_err(SYNTAX);   // todo: not number nor identifier
+                exit(1);
+            }
             
         }
     }
-    eval_exp1(value);
+//todo    eval_exp1(value);
 }
 
 /* Возврат лексемы во входной поток. */

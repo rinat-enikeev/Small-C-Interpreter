@@ -11,34 +11,14 @@
 #include "restrictions.h"
 #endif
 
-using namespace std;
+#ifndef EXTERN_VAR_DECL_H
+#include "externVars.h"
+#endif
 
-struct commands { /* таблица зарезервированных слов */
-  char command[20];
-  char tok;
-} table[] = { /* ¬ эту таблицу */
-  "if", IF, /* команды должны быть введены на нижнем регистре. */
-  "else", ELSE,
-  "for", FOR,
-  "do", DO,
-  "while", WHILE,
-  "char", CHAR,
-  "int", INT,
-  "return", RETURN,
-  "end", END,
-  "", END  /* конец таблицы */
-};
+
 
 void testcase_global_vars(void);
 int load_program(char *p, char *fname);
-
-char token_type; /* содержит тип лексемы */
-char tok;		/* внутреннее представление лексемы */
-char *prog;		/* текущее положение в исходном тексте программы */
-char *p_buf;		/* указатель на начало буфера программы */
-char token[80];	/* строковое представление лексемы */
-jmp_buf e_buf;   /* содержит данные дл€ longjmp() */
-
 int get_token(void);
 
 int main(void)
@@ -50,34 +30,15 @@ int main(void)
 	}
 
 	/* загрузка программы дл€ выполнени€ */
-	if(!load_program(p_buf, "vars.test")) exit(1);
+	if(!load_program(p_buf, "/Users/developer/Documents/smallC/Small-C-Interpreter/vars.test")) exit(1);
 
 	/* установка указател€ программы на начало буфера программы */
 	prog = p_buf;
-	testcase_global_vars(); 
+	testcase_global_vars();
+    
+    
 
 	return 0;
-}
-
-/* «агрузка программы. */
-int load_program(char *p, char *fname)
-{
-	FILE *fp;
-	int i=0;
-
-	if((fp=fopen(fname, "rb"))==NULL) return 0;
-
-	i = 0;
-	do {
-		*p = getc(fp);
-		p++; i++;
-	} while(!feof(fp) && i<PROG_SIZE);
-
-	if(*(p-2) == 0x1a) *(p-2) = '\0'; /* программа кончаетс€
-									нулевым символом */
-	else *(p-1) = '\0';
-	fclose(fp);
-	return 1;
 }
 
 /* “ест синтаксического разбора кода: 

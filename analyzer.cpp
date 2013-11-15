@@ -34,7 +34,6 @@ int get_token(void);
 
 void eval_exp(int *value);
 void eval_exp0(int *value);
-/* todo
 void eval_exp1(int *value);
 void eval_exp2(int *value);
 void eval_exp3(int *value);
@@ -102,7 +101,7 @@ void eval_exp0(int *value)
             
         }
     }
-// todo    eval_exp1(value);
+    eval_exp1(value);
 }
 
 /* Возврат лексемы во входной поток. */

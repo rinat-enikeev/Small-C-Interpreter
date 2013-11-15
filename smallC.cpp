@@ -204,47 +204,47 @@ void prescan(void)
 	prog = p;
 }
 
-//int main(int argc, char *argv[])
-//{
-//    if(argc != 2) {
-//        printf("Применение: littlec <имя_файла>\n");
-//        exit(1);
-//    }
-//    
-//    /* выделение памяти для программы */
-//    if((p_buf = (char *) malloc(PROG_SIZE))==NULL) {
-//        printf("Выделить память не удалось");
-//        exit(1);
-//    }
-//    
-//    /* загрузка программы для выполнения */
-//    if(!load_program(p_buf, argv[1])) exit(1);
-//    if(setjmp(e_buf)) exit(1); /* инициализация буфера long jump */
-//    
-//    gvar_index = 0;  /* инициализация индекса глобальных переменных */
-//    
-//    /* установка указателя программы на начало буфера программы */
-//    prog = p_buf;
-//    prescan(); /* определение адресов всех функций
-//                и глобальных переменных программы */
-//    
-//    lvartos = 0;     /* инициализация индекса стека локальных переменных */
-//    functos = 0;     /* инициализация индекса стека вызова (CALL) */
-//    
-//    /* первой вызывается main() */
-//    prog = find_func("main"); /* поиск точки входа программы */
-//    
-//    if(!prog) { /* функция main() неправильна или отсутствует */
-//        printf("main() не найдена.\n");
-//        exit(1);
-//    }
-//    
-//    prog--; /* возврат к открывающейся скобке ( */
-//    strcpy(token, "main");
-//    call(); /* начало интерпритации main() */
-//    
-//    return 0;
-//}
+int main(int argc, char *argv[])
+{
+    if(argc != 2) {
+        printf("Применение: littlec <имя_файла>\n");
+        exit(1);
+    }
+    
+    /* выделение памяти для программы */
+    if((p_buf = (char *) malloc(PROG_SIZE))==NULL) {
+        printf("Выделить память не удалось");
+        exit(1);
+    }
+    
+    /* загрузка программы для выполнения */
+    if(!load_program(p_buf, argv[1])) exit(1);
+    if(setjmp(e_buf)) exit(1); /* инициализация буфера long jump */
+    
+    gvar_index = 0;  /* инициализация индекса глобальных переменных */
+    
+    /* установка указателя программы на начало буфера программы */
+    prog = p_buf;
+    prescan(); /* определение адресов всех функций
+                и глобальных переменных программы */
+    
+    lvartos = 0;     /* инициализация индекса стека локальных переменных */
+    functos = 0;     /* инициализация индекса стека вызова (CALL) */
+    
+    /* первой вызывается main() */
+    prog = find_func("main"); /* поиск точки входа программы */
+    
+    if(!prog) { /* функция main() неправильна или отсутствует */
+        printf("main() не найдена.\n");
+        exit(1);
+    }
+    
+    prog--; /* возврат к открывающейся скобке ( */
+    strcpy(token, "main");
+    call(); /* начало интерпритации main() */
+    
+    return 0;
+}
 
 /* Вызов функции. */
 void call(void)
@@ -265,7 +265,7 @@ void call(void)
         prog = loc;  /* переустановка prog в начало функции */
         get_params(); /* загрузка параметров функции
                        значениями аргументов */
-// todo        interp_block(); /* интерпретация функции */
+        interp_block(); /* интерпретация функции */
         prog = temp; /* восстановление prog */
         lvartos = func_pop(); /* восстановление стека
                                локальных переменных */
@@ -287,7 +287,7 @@ void get_args(void)
     
     /* обработка списка значений */
     do {
-// todo        eval_exp(&value);
+        eval_exp(&value);
         temp[count] = value;  /* временное запоминание */
         get_token();
         count++;
@@ -371,25 +371,25 @@ char *find_func(char *name)
 }
 
 /* Загрузка программы. */
-//int load_program(char *p, char *fname)
-//{
-//    FILE *fp;
-//    int i=0;
-//    
-//    if((fp=fopen(fname, "rb"))==NULL) return 0;
-//    
-//    i = 0;
-//    do {
-//        *p = getc(fp);
-//        p++; i++;
-//    } while(!feof(fp) && i<PROG_SIZE);
-//    
-//    if(*(p-2) == 0x1a) *(p-2) = '\0'; /* программа кончается
-//                                       нулевым символом */
-//    else *(p-1) = '\0';
-//    fclose(fp);
-//    return 1;
-//}
+int load_program(char *p, char *fname)
+{
+    FILE *fp;
+    int i=0;
+    
+    if((fp=fopen(fname, "rb"))==NULL) return 0;
+    
+    i = 0;
+    do {
+        *p = getc(fp);
+        p++; i++;
+    } while(!feof(fp) && i<PROG_SIZE);
+    
+    if(*(p-2) == 0x1a) *(p-2) = '\0'; /* программа кончается
+                                       нулевым символом */
+    else *(p-1) = '\0';
+    fclose(fp);
+    return 1;
+}
 
 
 // todo: syntx_error informative messages
@@ -403,11 +403,16 @@ void decl_global_array(void)
 	int arrtype = tok;
 	global_arrays[garr_index].arr_type = arrtype;
     
-    get_token(); // name //todo assert token type is IDENTIFIER
+    get_token(); // name
+#if DEBUG
+	assert(token_type == IDENTIFIER);
+    cout << token << endl;
+#endif
 	strcpy(global_arrays[garr_index].arr_name, token);
     
 	get_token(); // [
 #if DEBUG
+    assert(token_type == ARRAY);
 	cout << token << endl;
 #endif
 	if (*token != '[') sntx_err(SYNTAX);

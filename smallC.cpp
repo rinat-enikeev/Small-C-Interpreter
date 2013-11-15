@@ -142,9 +142,6 @@ void decl_global_array(void)
 	int arrtype = tok;
 	global_arrays[garr_index].arr_type = arrtype;
 
-	get_token(); // name
-	strcpy(global_arrays[garr_index].arr_name, token);
-
 	get_token(); // [
 #if DEBUG
 	cout << token << endl;
@@ -159,7 +156,7 @@ void decl_global_array(void)
 
 	get_token(); // ]
 	if (*token != ']') sntx_err(SYNTAX);
-	
+    
 	// don't be dependent on compiler
 	if(arrtype == INT) {
 		global_arrays[garr_index].value = malloc(sizeof(int) * arr_length);
@@ -167,6 +164,9 @@ void decl_global_array(void)
 		global_arrays[garr_index].value = malloc(sizeof(char) * arr_length);
 	}
 
+    get_token(); // name
+	strcpy(global_arrays[garr_index].arr_name, token);
+    
 	get_token(); // ;
 	if(*token != ';') sntx_err(SEMI_EXPECTED);
 	garr_index++;

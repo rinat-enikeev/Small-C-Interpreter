@@ -7,10 +7,11 @@
 #include "commonEnums.h"
 #endif
 
+#ifndef RESTRICTIONS_DECL_H
+#include "restrictions.h"
+#endif
+
 using namespace std;
-
-#define PROG_SIZE       10000
-
 
 struct commands { /* таблица зарезервированных слов */
   char command[20];
@@ -50,8 +51,6 @@ int main(void)
 
 	/* загрузка программы для выполнения */
 	if(!load_program(p_buf, "vars.test")) exit(1);
-
-	cout << p_buf << endl;
 
 	/* установка указателя программы на начало буфера программы */
 	prog = p_buf;

@@ -5,63 +5,24 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#include <setjmp.h>
 
-/**********************************************************************/
-/* Типы лексем */
-enum tok_types {DELIMITER,  // знаки пунктуации и операторы
-				IDENTIFIER, // имена переменных и функций
-				NUMBER,     // числовая константа
-				KEYWORD,    // зарезервированные слова (while f.e.)
-                TEMP,		// вспомогательный тип токена для определения
-							// является токен KEYWORD или IDENTIFIER
-				STRING,		// строка
-				BLOCK,		// { или }
-				ARRAY};		// [ или ]
+#ifndef EXTERN_VAR_DECL_H
+#include "externVars.h"
+#endif
 
-/* Зарезервированные слова */
-enum tokens {ARG, 
-			CHAR, 
-			INT, 
-			IF, 
-			ELSE, 
-			FOR, 
-			DO, 
-			WHILE,
-            SWITCH, 
-			RETURN, 
-			EOL, 
-			FINISHED, 
-			END};
+#ifndef COMMON_ENUMS_DECL_H
+#include "commonEnums.h"
+#endif
 
-/* Эти константы используются для вызова функции sntx_err()
-   в случае синтаксической ошибки. 
-   ВНИМАНИЕ: константа SYNTAX используется тогда, когда
-   интерпритатор не может квалифицировать ошибку.
-*/
-enum error_msg
-     {SYNTAX, UNBAL_PARENS, NO_EXP, EQUALS_EXPECTED,
-      NOT_VAR, PARAM_ERR, SEMI_EXPECTED,
-      UNBAL_BRACES, FUNC_UNDEF, TYPE_EXPECTED,
-      NEST_FUNC, RET_NOCALL, PAREN_EXPECTED,
-      WHILE_EXPECTED, QUOTE_EXPECTED, NOT_TEMP,
-      TOO_MANY_LVARS, DIV_BY_ZERO};
+#ifndef RESTRICTIONS_DECL_H
+#include "restrictions.h"
+#endif
 
-enum double_ops {LT=1,  // < 
-				 LE,	// <=
-				 GT,	// >
-				 GE,	// >=
-				 EQ,	// == 
-				 NE};	// !=
+#if DEBUG
+#include <iostream>
+using namespace std;
+#endif
 
-/**********************************************************************/
-
-extern char token_type; /* содержит тип лексемы */
-extern char tok;		/* внутреннее представление лексемы */
-extern char *prog;		/* текущее положение в исходном тексте программы */
-extern char *p_buf;		/* указатель на начало буфера программы */
-extern char token[80];	/* строковое представление лексемы */
-extern jmp_buf e_buf;   /* содержит данные для longjmp() */
 
 int get_token(void);
 int look_up(char *s);
@@ -80,6 +41,10 @@ extern struct commands {
 /* Считывание лексемы из входного потока. */
 int get_token(void)
 {
+#if DEBUG
+		cout << "Token type ";
+#endif	
+
 	register char *temp; // храним массив символов
 
 	token_type = 0; 
@@ -114,6 +79,20 @@ int get_token(void)
 		return (token_type = BLOCK);
 	}
 // code block }}
+
+// {{ array
+	if(strchr("[]", *prog)) { /* ограничение блока */
+		*temp = *prog;
+		temp++;
+		*temp = '\0';
+		prog++;
+#if DEBUG
+		cout << " ARRAY ";
+		cout << token_type << endl;
+#endif
+		return (token_type = ARRAY);
+	}
+// array }}
 
 // {{ is comment
 	if(*prog == '/') {
@@ -202,6 +181,9 @@ int get_token(void)
 
 // {{ is an alphabetic letter
 	if(isalpha(*prog)) { /* переменная или оператор */
+#if DEBUG
+		cout << " alphabetical: ";
+#endif		
 		while(!isdelim(*prog)) *temp++ = *prog++;
 		token_type = TEMP;
 	}
@@ -212,8 +194,17 @@ int get_token(void)
 // {{ check if KEYWORD, otherwise identifier 
 	if(token_type==TEMP) {
 		tok = look_up(token); /* преобразовать во внутренее представление */
-		if(tok) token_type = KEYWORD; /* это зарезервированное слово */
-		else token_type = IDENTIFIER;
+		if(tok) {
+#if DEBUG
+			cout << " KEYWORD" << endl;
+#endif	
+			token_type = KEYWORD; /* это зарезервированное слово */
+		} else {
+#if DEBUG
+			cout << " IDENTIFIER" << endl;
+#endif	
+			token_type = IDENTIFIER;
+		}
 	}
 // }}
 
@@ -269,7 +260,7 @@ void sntx_err(int error)
 /* Возвращает true (ИСТИНА), если с - разделитель. */
 int isdelim(char c)
 {
-	if(strchr(" !;,+-<>'/*%^=()", c) || c == 9 ||
+	if(strchr(" !;,+-<>'/*%^=()[]", c) || c == 9 ||
 		c == '\r' || c == 0) return 1;
 	return 0;
 }
@@ -296,7 +287,24 @@ int look_up(char *s)
 
 	/* есть ли лексемы в таблице? */
 	for(i=0; *table[i].command; i++) {
-		if(!strcmp(table[i].command, s)) return table[i].tok;
+		if(!strcmp(table[i].command, s)) {
+
+#if DEBUG
+			cout << " from table: ";
+			cout << s;
+#endif
+
+			return table[i].tok;
+		}
 	}
 	return 0; /* незнакомый оператор */
+}
+
+/* Возврат лексемы во входной поток. */
+void putback(void)
+{
+  char *t;
+
+  t = token;
+  for(; *t; t++) prog--;
 }

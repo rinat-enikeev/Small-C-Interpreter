@@ -85,6 +85,49 @@ int func_pop(void);
 void func_ret(void);
 void local_push(struct var_type i);
 
+/* Если индентификатор является переменной, то
+ возвращается 1, иначе 0.
+ */
+int is_var(char *s)
+{
+    register int i;
+    
+    /* это локальная переменная ? */
+    for(i=lvartos-1; i >= call_stack[functos-1]; i--)
+        if(!strcmp(local_var_stack[i].var_name, token))
+            return 1;
+    
+    /* если нет - поиск среди глобальных переменных */
+    for(i=0; i < NUM_GLOBAL_VARS; i++)
+        if(!strcmp(global_vars[i].var_name, s))
+            return 1;
+    
+    return 0;
+}
+
+/* Присваивание переменной значения. */
+void assign_var(char *var_name, int value)
+{
+    register int i;
+    
+    /* проверка наличия локальной переменной */
+    for(i=lvartos-1; i >= call_stack[functos-1]; i--)  {
+        if(!strcmp(local_var_stack[i].var_name, var_name)) {
+            local_var_stack[i].value = value;
+            return;
+        }
+    }
+    if(i < call_stack[functos-1])
+    /* если переменная нелокальная,
+     ищем ее в таблице глобальных переменных */
+        for(i=0; i < NUM_GLOBAL_VARS; i++)
+            if(!strcmp(global_vars[i].var_name, var_name)) {
+                global_vars[i].value = value;
+                return;
+            }
+    sntx_err(NOT_VAR); /* переменная не найдена */
+}
+
 /* Õ‡ÈÚË ‡‰ÂÒ‡ ‚ÒÂı ÙÛÌÍˆËÈ ‚ ÔÓ„‡ÏÏÂ
    Ë Á‡ÔÓÏÌËÚ¸ „ÎÓ·‡Î¸Ì˚Â ÔÂÂÏÂÌÌ˚Â. */
 void prescan(void)

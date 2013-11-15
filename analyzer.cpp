@@ -25,21 +25,23 @@ using namespace std;
 
 // {{ from smallC.cpp interpreter
 int is_var(char *s);
+int is_arr(char *s);
 void assign_var(char *var_name, int value);
 // }}
 
 // {{ core functons
 int get_token(void);
 
-void eval_exp0(int *value);
 void eval_exp(int *value);
+void eval_exp0(int *value);
+/* todo
 void eval_exp1(int *value);
 void eval_exp2(int *value);
 void eval_exp3(int *value);
 void eval_exp4(int *value);
 void eval_exp5(int *value);
 void atom(int *value);
-// }}
+// }} */
 
 // {{ analyzer inner functions
 int look_up(char *s);
@@ -67,6 +69,7 @@ void eval_exp(int *value)
         *value = 0; /* пустое выражение */
         return;
     }
+
     eval_exp0(value);
     putback(); /* возврат последней лексемы во входной поток */
 }
@@ -95,9 +98,11 @@ void eval_exp0(int *value)
                 strcpy(token, temp);
                 token_type = temp_tok;
             }
+        } else if (is_arr(token)) {
+            
         }
     }
-    eval_exp1(value);
+// todo    eval_exp1(value);
 }
 
 /* Возврат лексемы во входной поток. */

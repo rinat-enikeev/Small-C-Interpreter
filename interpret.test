@@ -1,0 +1,13 @@
+int array[12];
+
+int main()
+{
+    int i;
+
+    array[0] = 5;
+    array[2] = 7;
+    
+    i = array[1+1] + 3;
+
+    return 0;
+}

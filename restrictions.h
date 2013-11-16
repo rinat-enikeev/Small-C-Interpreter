@@ -2,10 +2,10 @@
 #define RESTRICTIONS_DECL_H
 
 #define NUM_FUNC		  100
-#define NUM_GLOBAL_VARS   100
-#define NUM_GLOBAL_ARRAYS 100
-#define NUM_LOCAL_VARS    200
-#define NUM_LOCAL_ARRS    200
+#define NUM_GLOBAL_VARS   4
+#define NUM_GLOBAL_ARRAYS 4
+#define NUM_LOCAL_VARS    4
+#define NUM_LOCAL_ARRS    4
 #define NUM_BLOCK         100
 #define ID_LEN            31
 #define FUNC_CALLS        31

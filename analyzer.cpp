@@ -23,18 +23,22 @@
 using namespace std;
 #endif
 
-// {{ from smallC.cpp interpreter
+// {{ from memory.cpp interpreter
 int is_var(char *s);
 int is_arr(char *s);
 void assign_var(char *var_name, int value);
+int find_var(char *s);
+void assign_arr_element(char *arr_name, int position, int value);
+int find_arr_element(char *arr_name, int position);
+int arr_exists(char *name);
 // }}
+
 
 // {{ core functons
 int get_token(void);
 
 void eval_exp(int *value);
 void eval_exp0(int *value);
-/*
 void eval_exp1(int *value);
 void eval_exp2(int *value);
 void eval_exp3(int *value);
@@ -48,6 +52,7 @@ int look_up(char *s);
 int isdelim(char c), iswhite(char c);
 void sntx_err(int error);
 void putback(void);
+void arr_index_atom(int *value);
 // }}
 
 /* “‡·ÎËˆ‡ Á‡ÂÁÂ‚ËÓ‚‡ÌÌ˚ı ÒÎÓ‚ */
@@ -86,8 +91,7 @@ void eval_exp0(int *value)
                               посмотреть, присваивается ли ей значение */
             
             if (is_arr(token)) {
-                sntx_err(SYNTAX); // todo: make message: redefinition of global array is illegal
-                exit(1);
+                sntx_err(SYNTAX); // todo: make message: redefinition of array is illegal
             }
             
             strcpy(temp, token);
@@ -105,26 +109,223 @@ void eval_exp0(int *value)
                 token_type = temp_tok;
             }
         } else if (is_arr(token)) {
+            
+            strcpy(temp, token);
+            temp_tok = token_type;
             get_token();
-            if (*token != '[') {
-                sntx_err(SYNTAX);   // todo: make message: assigning array is illegal
-            }
-            get_token();
-            int arr_index;
-            if (token_type == NUMBER) { // index
-                arr_index = *value;
-            } else if (token_type == IDENTIFIER) {
-                eval_exp0(value);  /* вычислить присваемое значение */
+            
+            if (*token == '[') {
                 
+                get_token();
+                eval_exp0(value); // вычисление выражения в [] скобках
+                
+                int arr_index = *value;
+                
+                get_token(); // '=' or ';'
+                
+                if(*token == '=') {  /* это присваивание */
+                    get_token();
+                    eval_exp0(value);  /* вычислить присваемое значение */
+                    assign_arr_element(temp, arr_index, *value);  /* присвоить значение */
+                    return;
+                }
+//                else if (*token == ';') {
+//                    // arr_index - индекс массива из которого надо считать значение
+//                    // присваиваемое значение
+//                    *value = find_arr_element(temp, arr_index);
+//                    return;  
+//                }
+                else {  /* не присваивание */
+                    putback();  /* востановление лексемы */
+                    strcpy(token, temp);
+                    token_type = temp_tok;
+                }
+
             } else {
-                sntx_err(SYNTAX);   // todo: not number nor identifier
-                exit(1);
+                sntx_err(SYNTAX);   // todo: assigning array is illegal
             }
             
         }
     }
-//todo    eval_exp1(value);
+    eval_exp1(value);
 }
+
+/* Обработка операций сравнения. */
+void eval_exp1(int *value)
+{
+    int partial_value;
+    register char op;
+    char relops[7] = {
+        LT, LE, GT, GE, EQ, NE, 0
+    };
+    
+    eval_exp2(value);
+    op = *token;
+    if(strchr(relops, op)) {
+        get_token();
+        eval_exp2(&partial_value);
+        switch(op) {  /* вычисление результата операции сравнения */
+            case LT:
+                *value = *value < partial_value;
+                break;
+            case LE:
+                *value = *value <= partial_value;
+                break;
+            case GT:
+                *value = *value > partial_value;
+                break;
+            case GE:
+                *value = *value >= partial_value;
+                break;
+            case EQ:
+                *value = *value == partial_value;
+                break;
+            case NE:
+                *value = *value != partial_value;
+                break;
+        }
+    }
+}
+
+/*  Суммирование или вычисление двух термов. */
+void eval_exp2(int *value)
+{
+    register char  op;
+    int partial_value;
+    
+    eval_exp3(value);
+    while((op = *token) == '+' || op == '-') {
+        get_token();
+        eval_exp3(&partial_value);
+        switch(op) { /* суммирование или вычитание */
+            case '-':
+                *value = *value - partial_value;
+                break;
+            case '+':
+                *value = *value + partial_value;
+                break;
+        }
+    }
+}
+
+/* Умножение или деление двух множителей. */
+void eval_exp3(int *value)
+{
+    register char  op;
+    int partial_value, t;
+    
+    eval_exp4(value);
+    while((op = *token) == '*' || op == '/' || op == '%') {
+        get_token();
+        eval_exp4(&partial_value);
+        switch(op) { /* умножение, деление или деление целых */
+            case '*':
+                *value = *value * partial_value;
+                break;
+            case '/':
+                if(partial_value == 0) sntx_err(DIV_BY_ZERO);
+                *value = (*value) / partial_value;
+                break;
+            case '%':
+                t = (*value) / partial_value;
+                *value = *value-(t * partial_value);
+                break;
+        }
+    }
+}
+
+/* Унарный + или -. */
+void eval_exp4(int *value)
+{
+    register char  op;
+    
+    op = '\0';
+    if(*token == '+' || *token == '-') {
+        op = *token;
+        get_token();
+    }
+    eval_exp5(value);
+    if(op) {
+        if(op == '-') *value = -(*value);
+    }
+}
+
+/* Обработка выражения в скобках. */
+void eval_exp5(int *value)
+{
+    if((*token == '(')) {
+        get_token();
+        eval_exp0(value);   /* вычисление подвыражения */
+        if(*token != ')') sntx_err(PAREN_EXPECTED);
+        get_token();
+    }
+    else
+        atom(value);
+}
+
+/* Получение значения числа, переменной или функции. */
+void atom(int *value)
+{
+    int i;
+    
+    switch(token_type) {
+        case IDENTIFIER:
+// todo: sdtlib            i = internal_func(token);
+//            if(i!= -1) {  /* вызов функции из "стандартной билиотеки" */
+//                *value = (*intern_func[i].p)();
+//            }
+//            else
+//                if(find_func(token)) { /* вызов функции,
+//                                        определенной пользователем */
+//                    call();
+//                    *value = ret_value;
+//                }
+//                else
+            if (arr_exists(token)) {
+                *value = find_arr_element(token, *value);
+            } else {
+                *value = find_var(token); /* получение значения переменной */
+            }
+            get_token();
+            return;
+        case NUMBER: /* числовая константа */
+            *value = atoi(token);
+            get_token();
+            return;
+        case DELIMITER: /* это символьная константа? */
+            if(*token == '\'') {
+                *value = *prog;
+                prog++;
+                if(*prog!='\'') sntx_err(QUOTE_EXPECTED);
+                prog++;
+                get_token();
+                return ;
+            }
+            if(*token==')') return; /* обработка пустого выражения */
+            else sntx_err(SYNTAX); /* синтаксическая ошибка */
+        default:
+            sntx_err(SYNTAX); /* синтаксическая ошибка */
+    }
+}
+
+///* Получение значения в [] скобках массива - или число, или значение переменной */
+//void arr_index_atom(int *value)
+//{
+//    switch(token_type) {
+//        case IDENTIFIER:
+//            if (tok == INT) {
+//                *value = find_var(token); /* получение значения переменной */
+//            } else {
+//                sntx_err(SYNTAX); //todo: not int in array []
+//            }
+//            return;
+//        case NUMBER: /* числовая константа */
+//            *value = atoi(token);
+//            return;
+//        default:
+//            sntx_err(SYNTAX); /* синтаксическая ошибка */
+//    }
+//}
 
 /* Возврат лексемы во входной поток. */
 void putback(void)
@@ -152,11 +353,12 @@ int get_token(void)
 // {{ ÔÓÔÛÒÍ ÔÓ·ÂÎÓ‚, ÒËÏ‚ÓÎÓ‚ Ú‡·ÛÎˇˆËË Ë ÔÛÒÚÓÈ ÒÚÓÍË
 	while(iswhite(*prog) && *prog) ++prog;
 
-	if(*prog == '\r') {
+	if(*prog == '\r' || *prog == '\n') {
 		++prog;
-		++prog;
+        // COMPILER_SPECIFIC
 		while(iswhite(*prog) && *prog) ++prog;
 	}
+
 // ÔÓÔÛÒÍ ÔÓ·ÂÎÓ‚, ÒËÏ‚ÓÎÓ‚ Ú‡·ÛÎˇˆËË Ë ÔÛÒÚÓÈ ÒÚÓÍË }}
 
 // {{ end of file

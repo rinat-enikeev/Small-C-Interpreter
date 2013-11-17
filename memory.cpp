@@ -298,6 +298,7 @@ void func_ret(void)
 }
 
 
+
 /* Интерпритация одного оператора или блока. Когда
  interp_block() возвращает управление после первого
  вызова, в main() встретилась последняя
@@ -360,6 +361,20 @@ void interp_block(void)
                     exit(0);
             }
     } while (tok != FINISHED && block);
+}
+
+/* Поиск конца блока. */
+void find_eob(void)
+{
+    int brace;
+    
+    get_token();
+    brace = 1;
+    do {
+        get_token();
+        if(*token == '{') brace++;
+        else if(*token == '}') brace--;
+    } while(brace);
 }
 
 /* Вызов функции. */
@@ -511,26 +526,15 @@ int load_program(char *p, char *fname)
 // todo: syntx_error informative messages
 void decl_global_array(void)
 {
-#if DEBUG
-	cout << "Declaring global array: " << endl;
-#endif
-    
 	get_token(); // type
 	int arrtype = tok;
 	global_arrays[garr_index].arr_type = arrtype;
     
     get_token(); // name
-#if DEBUG
-	assert(token_type == IDENTIFIER);
-    cout << token << endl;
-#endif
 	strcpy(global_arrays[garr_index].arr_name, token);
     
 	get_token(); // [
-#if DEBUG
-    assert(token_type == ARRAY);
-	cout << token << endl;
-#endif
+
 	if (*token != '[') sntx_err(SYNTAX);
     
 	// important! comma separated definition of arrays are not supported

@@ -16,6 +16,7 @@ extern int garr_index;
 extern int lvartos; /* индекс в стеке локальных переменных */
 extern int larrtos; /* индекс в стеке локальных переменных */
 extern int functos;
+extern int ret_value;
 
 
 #endif //EXTERN_VAR_DECL_H

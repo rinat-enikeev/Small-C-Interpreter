@@ -31,6 +31,8 @@ int find_var(char *s);
 void assign_arr_element(char *arr_name, int position, int value);
 int find_arr_element(char *arr_name, int position);
 int arr_exists(char *name);
+char *find_func(char *name);
+void call();
 // }}
 
 
@@ -53,6 +55,8 @@ int isdelim(char c), iswhite(char c);
 void sntx_err(int error);
 void putback(void);
 void arr_index_atom(int *value);
+int internal_func(char *s);
+char *find_func(char *name);
 // }}
 
 /* “‡·ÎËˆ‡ Á‡ÂÁÂ‚ËÓ‚‡ÌÌ˚ı ÒÎÓ‚ */
@@ -60,6 +64,17 @@ extern struct commands {
   char command[20];
   char tok;
 } table[];
+
+
+int print(void);
+
+struct intern_func_type {
+    char *f_name; /* имя функции */
+    int (*p)();   /* указатель на функцию */
+} intern_func[] = {
+    "print", print,
+    "", 0  /* этот список заканчивается нулем */
+};
 
 
 /* Точка входа в синтаксический анализатор выражений. */
@@ -129,12 +144,6 @@ void eval_exp0(int *value)
                     assign_arr_element(temp, arr_index, *value);  /* присвоить значение */
                     return;
                 }
-//                else if (*token == ';') {
-//                    // arr_index - индекс массива из которого надо считать значение
-//                    // присваиваемое значение
-//                    *value = find_arr_element(temp, arr_index);
-//                    return;  
-//                }
                 else {  /* не присваивание */
                     putback();  /* востановление лексемы */
                     strcpy(token, temp);
@@ -270,17 +279,17 @@ void atom(int *value)
     
     switch(token_type) {
         case IDENTIFIER:
-// todo: sdtlib            i = internal_func(token);
-//            if(i!= -1) {  /* вызов функции из "стандартной билиотеки" */
-//                *value = (*intern_func[i].p)();
-//            }
-//            else
-//                if(find_func(token)) { /* вызов функции,
-//                                        определенной пользователем */
-//                    call();
-//                    *value = ret_value;
-//                }
-//                else
+            i = internal_func(token);
+            if(i!= -1) {  /* вызов функции из "стандартной билиотеки" */
+                *value = (*intern_func[i].p)();
+            }
+            else
+                if(find_func(token)) { /* вызов функции,
+                                        определенной пользователем */
+                    call();
+                    *value = ret_value;
+                }
+                else
             if (arr_exists(token)) {
                 *value = find_arr_element(token, *value);
             } else {
@@ -308,24 +317,18 @@ void atom(int *value)
     }
 }
 
-///* Получение значения в [] скобках массива - или число, или значение переменной */
-//void arr_index_atom(int *value)
-//{
-//    switch(token_type) {
-//        case IDENTIFIER:
-//            if (tok == INT) {
-//                *value = find_var(token); /* получение значения переменной */
-//            } else {
-//                sntx_err(SYNTAX); //todo: not int in array []
-//            }
-//            return;
-//        case NUMBER: /* числовая константа */
-//            *value = atoi(token);
-//            return;
-//        default:
-//            sntx_err(SYNTAX); /* синтаксическая ошибка */
-//    }
-//}
+/* Возвращает идекс функции во внутренней
+ библиотеке, или -1, если не найдена.
+ */
+int internal_func(char *s)
+{
+    int i;
+    
+    for(i=0; intern_func[i].f_name[0]; i++) {
+        if(!strcmp(intern_func[i].f_name, s))  return i;
+    }
+    return -1;
+}
 
 /* Возврат лексемы во входной поток. */
 void putback(void)
@@ -339,10 +342,6 @@ void putback(void)
 /* —˜ËÚ˚‚‡ÌËÂ ÎÂÍÒÂÏ˚ ËÁ ‚ıÓ‰ÌÓ„Ó ÔÓÚÓÍ‡. */
 int get_token(void)
 {
-#if DEBUG
-		cout << "Token type ";
-#endif	
-
 	register char *temp; // ı‡ÌËÏ Ï‡ÒÒË‚ ÒËÏ‚ÓÎÓ‚
 
 	token_type = 0; 
@@ -385,10 +384,6 @@ int get_token(void)
 		temp++;
 		*temp = '\0';
 		prog++;
-#if DEBUG
-		cout << " ARRAY ";
-		cout << token_type << endl;
-#endif
 		return (token_type = ARRAY);
 	}
 // array }}
@@ -480,9 +475,6 @@ int get_token(void)
 
 // {{ is an alphabetic letter
 	if(isalpha(*prog)) { /* ÔÂÂÏÂÌÌ‡ˇ ËÎË ÓÔÂ‡ÚÓ */
-#if DEBUG
-		cout << " alphabetical: ";
-#endif		
 		while(!isdelim(*prog)) *temp++ = *prog++;
 		token_type = TEMP;
 	}
@@ -494,14 +486,8 @@ int get_token(void)
 	if(token_type==TEMP) {
 		tok = look_up(token); /* ÔÂÓ·‡ÁÓ‚‡Ú¸ ‚Ó ‚ÌÛÚÂÌÂÂ ÔÂ‰ÒÚ‡‚ÎÂÌËÂ */
 		if(tok) {
-#if DEBUG
-			cout << " KEYWORD" << endl;
-#endif	
 			token_type = KEYWORD; /* ˝ÚÓ Á‡ÂÁÂ‚ËÓ‚‡ÌÌÓÂ ÒÎÓ‚Ó */
 		} else {
-#if DEBUG
-			cout << " IDENTIFIER" << endl;
-#endif	
 			token_type = IDENTIFIER;
 		}
 	}
@@ -587,12 +573,6 @@ int look_up(char *s)
 	/* ÂÒÚ¸ ÎË ÎÂÍÒÂÏ˚ ‚ Ú‡·ÎËˆÂ? */
 	for(i=0; *table[i].command; i++) {
 		if(!strcmp(table[i].command, s)) {
-
-#if DEBUG
-			cout << " from table: ";
-			cout << s;
-#endif
-
 			return table[i].tok;
 		}
 	}

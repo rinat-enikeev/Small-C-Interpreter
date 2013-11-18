@@ -93,6 +93,7 @@ int ret_value; /* возвращаемое значение функции */
 // {{ program flow functions
 void exec_if(void);
 void find_eob(void);
+void exec_while(void);
 // }}
 
 
@@ -353,9 +354,9 @@ void interp_block(void)
                     find_eob(); /* поиск конца блока else
                                  и продолжение выполнения */
                     break;
-//                case WHILE:   /* обработка цикла while */
-//                    exec_while();
-//                    break;
+                case WHILE:   /* обработка цикла while */
+                    exec_while();
+                    break;
 //                case DO:      /* обработка цикла do-while */
 //                    exec_do();
 //                    break;
@@ -701,4 +702,23 @@ void exec_if(void)
         interp_block();
     }
 }
+/* Выполнение цикла while. */
+void exec_while(void)
+{
+    int cond;
+    char *temp;
+    
+    putback();
+    temp = prog;  /* запоминание адреса начала цикла while */
+    get_token();
+    eval_exp(&cond);  /* вычисление управляющего выражения */
+    if(cond) interp_block();  /* если оно истинно, то выполнить
+                               интерпритацию */
+    else {  /* в противном случае цикл пропускается */
+        find_eob();
+        return;
+    }
+    prog = temp;  /* возврат к началу цикла */
+}
+
 // }}

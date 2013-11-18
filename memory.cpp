@@ -94,6 +94,7 @@ int ret_value; /* возвращаемое значение функции */
 void exec_if(void);
 void find_eob(void);
 void exec_while(void);
+void exec_do(void);
 // }}
 
 
@@ -357,9 +358,9 @@ void interp_block(void)
                 case WHILE:   /* обработка цикла while */
                     exec_while();
                     break;
-//                case DO:      /* обработка цикла do-while */
-//                    exec_do();
-//                    break;
+                case DO:      /* обработка цикла do-while */
+                    exec_do();
+                    break;
 //                case FOR:     /* обработка цикла for */
 //                    exec_for();
 //                    break;
@@ -719,6 +720,25 @@ void exec_while(void)
         return;
     }
     prog = temp;  /* возврат к началу цикла */
+}
+
+/* Выполнение цикла do. */
+void exec_do(void)
+{
+    int cond;
+    char *temp;
+    
+    putback();
+    temp = prog;  /* запоминание адреса начала цикла */
+    
+    get_token(); /* найти начало цикла */
+    interp_block(); /* интерпритация цикла */
+    get_token();
+    if(tok != WHILE) sntx_err(WHILE_EXPECTED);
+    eval_exp(&cond); /* проверка условия цикла */
+    if(cond) prog = temp; /* если условие истинно,
+                           то цикл выполняется, в противном случае происходит
+                           выход из цикла */
 }
 
 // }}

@@ -7,6 +7,15 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
+
+// {{ core functions
+int print(char *s); /* вывод строки на экран */
+int print(int i);   /* вывод целого числа на экран */
+int getnum(void);   /* read int from keyboard */
+int call_getche();  /* read char from keyboard */
+
+// }}
 
 // {{ analyzer.cpp functions
 int get_token(void);
@@ -14,6 +23,29 @@ void putback(void);
 void sntx_err(int error);
 void eval_exp(int *value);
 // }}
+
+/* Считывание символа с консоли. Если компилятор
+ не поддерживает _getche(), то следует
+ использвать getchar() */
+int call_getche()
+{
+    char ch;
+    ch = getchar();
+    while(*prog!=')') prog++;
+    prog++;   /* продвижение к концу строки */
+    return ch;
+}
+
+/* Считывание целого числа с клавиатуры. */
+int getnum(void)
+{
+    char s[80];
+
+    gets(s);
+    while(*prog != ')') prog++;
+    prog++;  /* продвижение к концу строки */
+    return atoi(s);
+}
 
 /* Встроенная функция консольного вывода. */
 int print(void)

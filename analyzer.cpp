@@ -66,13 +66,19 @@ extern struct commands {
 } table[];
 
 
-int print(void);
+// {{ lib functions from lib.cpp
+int print(void); /* вывод строки на экран */
+int getnum(void);   /* read int from keyboard */
+int call_getche();  /* read char from keyboard */
+// }}
 
 struct intern_func_type {
     char *f_name; /* имя функции */
     int (*p)();   /* указатель на функцию */
 } intern_func[] = {
     "print", print,
+    "getnum", getnum,
+    "getche", call_getche,
     "", 0  /* этот список заканчивается нулем */
 };
 

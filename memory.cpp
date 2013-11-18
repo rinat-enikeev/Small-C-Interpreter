@@ -72,8 +72,6 @@ struct array_type {
 
 struct array_type local_arr_stack[NUM_LOCAL_ARRS];
 
-
-
 void decl_global(void), sntx_err(int error), putback(void), decl_global_array(void);
 int get_token(void);
 int load_program(char *p, char *fname);
@@ -95,6 +93,7 @@ void exec_if(void);
 void find_eob(void);
 void exec_while(void);
 void exec_do(void);
+void exec_for(void);
 // }}
 
 
@@ -361,9 +360,9 @@ void interp_block(void)
                 case DO:      /* обработка цикла do-while */
                     exec_do();
                     break;
-//                case FOR:     /* обработка цикла for */
-//                    exec_for();
-//                    break;
+                case FOR:     /* обработка цикла for */
+                    exec_for();
+                    break;
                 case END:
                     exit(0);
             }
@@ -740,5 +739,43 @@ void exec_do(void)
                            то цикл выполняется, в противном случае происходит
                            выход из цикла */
 }
+/* Выполнение цикла for. */
+void exec_for(void)
+{
+    int cond;
+    char *temp, *temp2;
+    int brace ;
+    
+    get_token();
+    eval_exp(&cond);  /* инициализирующее выражение */
+    if(*token != ';') sntx_err(SEMI_EXPECTED);
+    prog++; /* пропуск ; */
+    temp = prog;
+    for(;;) {
+        eval_exp(&cond);  /* проверка условия */
+        if(*token != ';') sntx_err(SEMI_EXPECTED);
+        prog++; /* пропуск ; */
+        temp2 = prog;
+        
+        /* поиск начала тела цикла */
+        brace = 1;
+        while(brace) {
+            get_token();
+            if(*token == '(') brace++;
+            if(*token == ')') brace--;
+        }
+        
+        if(cond) interp_block();  /* если условие выполнено,
+                                   то выполнить интерпритацию */
+        else {  /* в противном случае обойти цикл */
+            find_eob();
+            return;
+        }
+        prog = temp2;
+        eval_exp(&cond); /* вполнение инкремента */
+        prog = temp;  /* возврат в начало цикла */
+    }
+}
+
 
 // }}

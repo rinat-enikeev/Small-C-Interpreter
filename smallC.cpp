@@ -19,6 +19,7 @@ void prescan(void);
 int load_program(char *p, char *fname);
 char *find_func(char *name);
 void call(void);
+void free_arr();
  /* }} */
 
 
@@ -61,6 +62,9 @@ int main(int argc, char *argv[])
     prog--; /* возврат к открывающейся скобке ( */
     strcpy(token, "main");
     call(); /* начало интерпритации main() */
+    
+    // free memory from global arrays
+    free_arr();
     
     return 0;
 }

@@ -81,6 +81,7 @@ void get_params(void), get_args(void), func_push(int i);
 int func_pop(void);
 void func_ret(void);
 void local_push(struct var_type i);
+void free_arr();
 
 /* {{ entry point to analyzer.cpp */
 void eval_exp(int *value);
@@ -655,6 +656,14 @@ int arr_exists(char *name) {
         }
     }
     return 0;
+}
+
+void free_arr() {
+    register int i;
+    for(i=0; i < NUM_GLOBAL_ARRAYS; i++) {
+        free(global_arrays[i].int_arr);
+        free(global_arrays[i].char_arr);
+    }
 }
 
 

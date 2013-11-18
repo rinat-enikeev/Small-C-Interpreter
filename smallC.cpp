@@ -13,12 +13,6 @@
 #include "restrictions.h"
 #endif
 
-#if DEBUG == 1
-#include <iostream>
-using namespace std;
-#endif
-
-
 
 /* {{ functions from memory.cpp */
 void prescan(void);

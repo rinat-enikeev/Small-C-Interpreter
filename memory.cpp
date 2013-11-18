@@ -90,6 +90,11 @@ void eval_exp(int *value);
 
 int ret_value; /* возвращаемое значение функции */
 
+// {{ program flow functions
+void exec_if(void);
+void find_eob(void);
+// }}
+
 
 
 /* Найти адреса всех функций в программе
@@ -341,13 +346,13 @@ void interp_block(void)
                 case RETURN:  /* возврат из вызова функции */
                     func_ret();
                     return;
-//                case IF:      /* обработка оператора if */
-//                    exec_if();
-//                    break;
-//                case ELSE:    /* обработка оператора else */
-//                    find_eob(); /* поиск конца блока else
-//                                 и продолжение выполнения */
-//                    break;
+                case IF:      /* обработка оператора if */
+                    exec_if();
+                    break;
+                case ELSE:    /* обработка оператора else */
+                    find_eob(); /* поиск конца блока else
+                                 и продолжение выполнения */
+                    break;
 //                case WHILE:   /* обработка цикла while */
 //                    exec_while();
 //                    break;
@@ -671,3 +676,29 @@ int find_var(char *s)
     sntx_err(NOT_VAR); /* переменная не найдена */
     return -1; 
 }
+
+// {{ program flow functions
+/* Выполнение оператора if. */
+void exec_if(void)
+{
+    int cond;
+    
+    eval_exp(&cond); /* вычисление if-выражения */
+    
+    if(cond) { /* истина - интерпретация if-предложения */
+        interp_block();
+    }
+    else { /* в противном случае пропуск if-предложения
+            и выполнение else-предложения, если оно есть */
+        find_eob(); /* поиск конца блока */
+        get_token();
+        
+        if(tok != ELSE) {
+            putback();  /* восстановление лексемы,
+                         если else-предложение отсутсвует */
+            return;
+        }
+        interp_block();
+    }
+}
+// }}

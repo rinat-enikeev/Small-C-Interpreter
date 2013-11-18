@@ -535,7 +535,7 @@ void sntx_err(int error)
 	p = p_buf;
 	while(p != prog) {  /* ÔÓËÒÍ ÌÓÏÂ‡ ÒÚÓÍË Ò Ó¯Ë·ÍÓÈ */
 		p++;
-		if(*p == '\r') {
+		if(*p == '\r' || *p == '\n') {
 			linecount++;
 		}
 	}

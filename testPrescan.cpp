@@ -24,20 +24,18 @@ extern struct array_type {
 extern int garr_index;
 
 void testcase_arrays(void);
-int load_program(char *p, char *fname);
 
+int load_program(char *p, char *fname);
 int get_token(void);
 void prescan(void);
 
 int main(void)
 {
-	/* ‚˚‰ÂÎÂÌËÂ Ô‡ÏˇÚË ‰Îˇ ÔÓ„‡ÏÏ˚ */
 	if((p_buf = (char *) malloc(PROG_SIZE))==NULL) {
 		printf("Can not allocate memory");
 		exit(1);
 	}
 
-	/* Á‡„ÛÁÍ‡ ÚÂÒÚÓ‚ÓÈ ÔÓ„‡ÏÏ˚ Ò Ï‡ÒÒË‚ÓÏ ‰Îˇ ‚˚ÔÓÎÌÂÌËˇ */
 	if(!load_program(p_buf, "/Users/developer/Documents/smallC/Small-C-Interpreter/arrays.test")) exit(1);
 	prog = p_buf;
 	testcase_arrays(); 
@@ -45,25 +43,19 @@ int main(void)
 	return 0;
 }
 
-/* “ÂÒÚ ÒËÌÚ‡ÍÒË˜ÂÒÍÓ„Ó ‡Á·Ó‡ ÍÓ‰‡: 
-
-	int [] array;
-
-*/
 void testcase_arrays(void)
 {
-	cout << "Test input source is: \n" << endl;
-	cout << "________________________________________ \n" << endl;
+	cout << "Test input source is: " << endl;
+	cout << "________________________________________" << endl;
 	cout << p_buf << endl;
-	cout << "________________________________________ \n" << endl;
+	cout << "________________________________________" << endl;
 	
 	cout << "entering prescan..." << endl;
 	prescan(); // int [] array; 
 	cout << "prescan ended." << endl;
 
-	cout << garr_index << endl;
-
 	assert(garr_index == 1);
+    cout << "global array index == 1: OK" << endl;
 	assert(global_arrays[0].arr_type == INT);
-    cout << global_arrays[0].arr_name << endl;
+    cout << "global array type is INT: OK" << endl;
 }

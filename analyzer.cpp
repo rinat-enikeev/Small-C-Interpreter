@@ -27,13 +27,13 @@ using namespace std;
 int get_token(void);
 
 void eval_exp(int *value);
-void eval_exp0(int *value);
-void eval_exp1(int *value);
-void eval_exp2(int *value);
-void eval_exp3(int *value);
-void eval_exp4(int *value);
-void eval_exp5(int *value);
-void atom(int *value);
+void eval_exp0(int *value); // =
+void eval_exp1(int *value); // < > <= >=
+void eval_exp2(int *value); // + -
+void eval_exp3(int *value); // * /
+void eval_exp4(int *value); // унарный + -
+void eval_exp5(int *value); // ()
+void atom(int *value);      // terminal
 // }} */
 
 // {{ from memory.cpp interpreter
@@ -58,7 +58,7 @@ int internal_func(char *s);
 char *find_func(char *name);
 // }}
 
-/* “‡·ÎËˆ‡ Á‡ÂÁÂ‚ËÓ‚‡ÌÌ˚ı ÒÎÓ‚ */
+/* Таблица зарезервированных слов */
 extern struct commands {
   char command[20];
   char tok;

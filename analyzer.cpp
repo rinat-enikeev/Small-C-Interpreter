@@ -1,7 +1,7 @@
-/* –ÂÍÛÒË‚Ì˚È ÌËÒıÓ‰ˇ˘ËÈ ÒËÌÚ‡ÍÒË˜ÂÒÍËÈ ‡Ì‡ÎËÁ‡ÚÓ
-   ˆÂÎÓ˜ËÒÎÂÌÌ˚ı ‚˚‡ÊÂÌËÈ, ÒÓ‰ÂÊ‡˘Ëı ÔÂÂÏÂÌÌ˚Â
-   Ë ‚˚ÁÓ‚˚ ÙÛÌÍˆËÈ.
-*/
+/* Рекурсивный нисходящий синтаксический анализатор
+   целочисленных выражений, содержащих переменные
+   и вызовы функций.
+*/s
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -345,17 +345,17 @@ void putback(void)
     for(; *t; t++) prog--;
 }
 
-/* —˜ËÚ˚‚‡ÌËÂ ÎÂÍÒÂÏ˚ ËÁ ‚ıÓ‰ÌÓ„Ó ÔÓÚÓÍ‡. */
+/* Считывание лексемы из входного потока. */
 int get_token(void)
 {
-	register char *temp; // ı‡ÌËÏ Ï‡ÒÒË‚ ÒËÏ‚ÓÎÓ‚
+	register char *temp; 
 
 	token_type = 0; 
 	tok = 0;
 	temp = token;
 	*temp = '\0';
 
-// {{ ÔÓÔÛÒÍ ÔÓ·ÂÎÓ‚, ÒËÏ‚ÓÎÓ‚ Ú‡·ÛÎˇˆËË Ë ÔÛÒÚÓÈ ÒÚÓÍË
+// {{ пропуск пробелов, символов табуляции и пустой строки */
 	while(iswhite(*prog) && *prog) ++prog;
 
 	if(*prog == '\r' || *prog == '\n') {
@@ -364,7 +364,7 @@ int get_token(void)
 		while(iswhite(*prog) && *prog) ++prog;
 	}
 
-// ÔÓÔÛÒÍ ÔÓ·ÂÎÓ‚, ÒËÏ‚ÓÎÓ‚ Ú‡·ÛÎˇˆËË Ë ÔÛÒÚÓÈ ÒÚÓÍË }}
+// }}
 
 // {{ end of file
 	if(*prog == '\0') {
@@ -375,7 +375,7 @@ int get_token(void)
 // end of file }}
 
 // {{ code block
-	if(strchr("{}", *prog)) { /* Ó„‡ÌË˜ÂÌËÂ ·ÎÓÍ‡ */
+	if(strchr("{}", *prog)) { /* ограничение блока */
 		*temp = *prog;
 		temp++;
 		*temp = '\0';
@@ -385,7 +385,7 @@ int get_token(void)
 // code block }}
 
 // {{ array
-	if(strchr("[]", *prog)) { /* Ó„‡ÌË˜ÂÌËÂ ·ÎÓÍ‡ */
+	if(strchr("[]", *prog)) {
 		*temp = *prog;
 		temp++;
 		*temp = '\0';
@@ -452,9 +452,9 @@ int get_token(void)
 // comp. operator}}
 
 // {{ delimiter 
-	if(strchr("+-*^/%=;(),'", *prog)){ /* ‡Á‰ÂÎËÚÂÎ¸ */
+	if(strchr("+-*^/%=;(),'", *prog)){ /* разделитель */
 		*temp = *prog;
-		prog++; /* ÔÓ‰‚ËÊÂÌËÂ Ì‡ ÒÎÂ‰Û˛˘Û˛ ÔÓÁËˆË˛ */
+		prog++; /* продвижение на следующую позицию */
 		temp++;
 		*temp = '\0';
 		return (token_type = DELIMITER);
@@ -462,7 +462,7 @@ int get_token(void)
 // delimiter }}
 
 // {{ string 
-	if(*prog=='"') { /* ÒÚÓÍ‡ ‚ Í‡‚˚˜Í‡ı */
+	if(*prog=='"') { /* строка в кавычках */
 		prog++;
 		while(*prog != '"' && *prog != '\r') *temp++ = *prog++;
 		if(*prog == '\r') sntx_err(SYNTAX);
@@ -472,7 +472,7 @@ int get_token(void)
 // string }}
 
 // {{ number constant
-	if(isdigit(*prog)) { /* ˜ËÒÎÓ */
+	if(isdigit(*prog)) { /* число */
 		while(!isdelim(*prog)) *temp++ = *prog++;
 		*temp = '\0';
 		return (token_type = NUMBER);
@@ -480,7 +480,7 @@ int get_token(void)
 // number constant }}
 
 // {{ is an alphabetic letter
-	if(isalpha(*prog)) { /* ÔÂÂÏÂÌÌ‡ˇ ËÎË ÓÔÂ‡ÚÓ */
+	if(isalpha(*prog)) { /* переменная или оператор */
 		while(!isdelim(*prog)) *temp++ = *prog++;
 		token_type = TEMP;
 	}
@@ -490,9 +490,9 @@ int get_token(void)
 
 // {{ check if KEYWORD, otherwise identifier 
 	if(token_type==TEMP) {
-		tok = look_up(token); /* ÔÂÓ·‡ÁÓ‚‡Ú¸ ‚Ó ‚ÌÛÚÂÌÂÂ ÔÂ‰ÒÚ‡‚ÎÂÌËÂ */
+		tok = look_up(token); /* преобразовать во внутренее представление */
 		if(tok) {
-			token_type = KEYWORD; /* ˝ÚÓ Á‡ÂÁÂ‚ËÓ‚‡ÌÌÓÂ ÒÎÓ‚Ó */
+			token_type = KEYWORD; /* это зарезервированное слово */
 		} else {
 			token_type = IDENTIFIER;
 		}
@@ -504,7 +504,7 @@ int get_token(void)
 
 
 
-/* ¬˚‚Ó‰ ÒÓÓ·˘ÂÌËˇ Ó· Ó¯Ë·ÍÂ. */
+/* Вывод сообщения об ошибке. */
 void sntx_err(int error)
 {
 	char *p, *temp;
@@ -533,7 +533,7 @@ void sntx_err(int error)
     };
 	printf("\n%s", e[error]);
 	p = p_buf;
-	while(p != prog) {  /* ÔÓËÒÍ ÌÓÏÂ‡ ÒÚÓÍË Ò Ó¯Ë·ÍÓÈ */
+	while(p != prog) {  /* поиск номера строки с ошибкой */
 		p++;
 		if(*p == '\r' || *p == '\n') {
 			linecount++;
@@ -545,10 +545,10 @@ void sntx_err(int error)
 	for(i=0; i < 20 && p > p_buf && *p != '\n'; i++, p--);
 	for(i=0; i < 30 && p <= temp; i++, p++) printf("%c", *p);
 
-	longjmp(e_buf, 1); /* ‚ÓÁ‚‡Ú ‚ ·ÂÁÓÔ‡ÒÌÛ˛ ÚÓ˜ÍÛ */
+	longjmp(e_buf, 1); /* возврат в безопасную точку */
 }
 
-/* ¬ÓÁ‚‡˘‡ÂÚ true (»—“»Õ¿), ÂÒÎË Ò - ‡Á‰ÂÎËÚÂÎ¸. */
+/* Возвращает true (ИСТИНА), если с - разделитель. */
 int isdelim(char c)
 {
 	if(strchr(" !;,+-<>'/*%^=()[]", c) || c == 9 ||
@@ -556,7 +556,7 @@ int isdelim(char c)
 	return 0;
 }
 
-/* ¬ÓÁ‚‡˘‡ÂÚ 1, ÂÒÎË Ò - ÔÓ·ÂÎ ËÎË Ú‡·ÛÎˇˆËˇ. */
+/* Возвращает 1, если с - пробел или табуляция. */
 int iswhite(char c)
 {
 	if(c == ' ' || c == '\t') return 1;
@@ -564,23 +564,23 @@ int iswhite(char c)
 }
 
 
-/* œÓËÒÍ ‚ÌÛÚÂÌÌÂ„Ó ÔÂ‰ÒÚ‡‚ÎÂÌËˇ ÎÂÍÒÂÏ˚
-   ‚ Ú‡·ÎËˆÂ ÎÂÍÒÂÏ.
+/* Поиск внутреннего представления лексемы
+   в таблице лексем.
 */
 int look_up(char *s)
 {
 	register int i;
 	char *p;
 
-	/* ÔÂÓ·‡ÁÓ‚‡ÌËÂ ‚ ÌËÊÌËÈ Â„ËÒÚ */
+	/* преобразование в нижний регистр */
 	p = s;
 	while(*p) { *p = tolower(*p); p++; }
 
-	/* ÂÒÚ¸ ÎË ÎÂÍÒÂÏ˚ ‚ Ú‡·ÎËˆÂ? */
+	/* есть ли лексемы в таблице? */
 	for(i=0; *table[i].command; i++) {
 		if(!strcmp(table[i].command, s)) {
 			return table[i].tok;
 		}
 	}
-	return 0; /* ÌÂÁÌ‡ÍÓÏ˚È ÓÔÂ‡ÚÓ */
+	return 0; /* незнакомый оператор */
 }

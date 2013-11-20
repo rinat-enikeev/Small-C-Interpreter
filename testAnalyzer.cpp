@@ -30,7 +30,7 @@ int main(void)
 	}
 
 	/* загрузка программы для выполнения */
-	if(!load_program(p_buf, "/Users/developer/Documents/smallC/Small-C-Interpreter/vars.test")) exit(1);
+	if(!load_program(p_buf, "analyzer.test")) exit(1);
 
 	/* установка указателя программы на начало буфера программы */
 	prog = p_buf;
@@ -72,4 +72,21 @@ void testcase_global_vars(void)
 	get_token(); // "j"
 	assert(token_type == IDENTIFIER);
 	cout << "4 token type is IDENTIFIER: OK" << endl;
+
+	get_token(); // ";"
+	assert(token_type == DELIMITER);
+	cout << "5 token type is DELIMITER: OK" << endl;
+
+	get_token(); // "char"
+	assert(tok == CHAR);
+	assert(token_type == KEYWORD);
+	cout << "6 token is CHAR, type is KEYWORD: OK" << endl;
+
+	get_token(); // "ch"
+	assert(token_type == IDENTIFIER);
+	cout << "7 token type is IDENTIFIER: OK" << endl;
+
+	get_token(); // ";"
+	assert(token_type == DELIMITER);
+	cout << "8 token type is DELIMITER: OK" << endl;
 }

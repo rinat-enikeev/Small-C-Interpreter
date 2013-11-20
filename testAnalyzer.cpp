@@ -89,4 +89,25 @@ void testcase_global_vars(void)
 	get_token(); // ";"
 	assert(token_type == DELIMITER);
 	cout << "8 token type is DELIMITER: OK" << endl;
+    
+    get_token(); // int
+    assert(token_type == KEYWORD);
+    cout << "9 token type is KEYWORD: OK" << endl;
+    
+    get_token(); // main
+    assert(token_type == IDENTIFIER);
+    cout << "10 token type is IDENTIFIER: OK" << endl;
+    
+    get_token(); // (
+    assert(token_type == DELIMITER);
+    cout << "11 token type is DELIMITER: OK" << endl;
+    
+    get_token(); // )
+    assert(token_type == DELIMITER);
+    cout << "12 token type is DELIMITER: OK" << endl;
+    
+    get_token(); // {
+    assert(token_type == BLOCK);
+    cout << "13 token type is BLOCK: OK" << endl;
+    
 }

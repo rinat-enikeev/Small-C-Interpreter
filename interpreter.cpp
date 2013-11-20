@@ -11,6 +11,12 @@
 #endif
 
 
+/* {{ entry point to analyzer.cpp */
+void eval_exp(int *value);
+int get_token(void);
+// }}
+
+
 char token_type; /* тип токена */
 char tok;		 /* внутреннее представление лексемы */
 char *prog;      /* текущая позиция в исходном тексте программы */
@@ -72,20 +78,16 @@ struct array_type {
 
 struct array_type local_arr_stack[NUM_LOCAL_ARRS];
 
+
 void decl_global(void), sntx_err(int error), putback(void), decl_global_array(void);
-int get_token(void);
 int load_program(char *p, char *fname);
 char *find_func(char *name);
 void call(void);
 void get_params(void), get_args(void), func_push(int i);
-int func_pop(void);
+int  func_pop(void);
 void func_ret(void);
 void local_push(struct var_type i);
 void free_arr();
-
-/* {{ entry point to analyzer.cpp */
-void eval_exp(int *value);
-// }}
 
 int ret_value; /* возвращаемое значение функции */
 
@@ -711,6 +713,7 @@ void exec_if(void)
         interp_block();
     }
 }
+
 /* Выполнение цикла while. */
 void exec_while(void)
 {
@@ -775,13 +778,13 @@ void exec_for(void)
         }
         
         if(cond) interp_block();  /* если условие выполнено,
-                                   то выполнить интерпритацию */
+                                   то выполнить интерпретацию */
         else {  /* в противном случае обойти цикл */
             find_eob();
             return;
         }
         prog = temp2;
-        eval_exp(&cond); /* вполнение инкремента */
+        eval_exp(&cond); /* выполнение инкремента */
         prog = temp;  /* возврат в начало цикла */
     }
 }

@@ -82,7 +82,7 @@ struct intern_func_type {
 };
 
 
-/* Точка входа в синтаксический анализатор выражений. */
+/* Entry point to evaluate expression in syntax tree */
 void eval_exp(int *value)
 {
     get_token();

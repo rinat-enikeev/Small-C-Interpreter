@@ -3,7 +3,7 @@
 
 #include <setjmp.h>
 
-extern char token_type; /* содержит тип лексемы */
+extern char token_type; /* содержит тип лексемы из перечисления tok_types */
 extern char tok;		/* внутреннее представление лексемы */
 extern char *prog;		/* текущая позиция в исходном тексте программы */
 extern char token[80];  /* строковое представление лексемы */

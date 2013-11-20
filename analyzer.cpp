@@ -1,7 +1,7 @@
 /* Рекурсивный нисходящий синтаксический анализатор
    целочисленных выражений, содержащих переменные
    и вызовы функций.
-*/s
+*/
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -23,19 +23,6 @@
 using namespace std;
 #endif
 
-// {{ from memory.cpp interpreter
-int is_var(char *s);
-int is_arr(char *s);
-void assign_var(char *var_name, int value);
-int find_var(char *s);
-void assign_arr_element(char *arr_name, int position, int value);
-int find_arr_element(char *arr_name, int position);
-int arr_exists(char *name);
-char *find_func(char *name);
-void call();
-// }}
-
-
 // {{ core functons
 int get_token(void);
 
@@ -48,6 +35,18 @@ void eval_exp4(int *value);
 void eval_exp5(int *value);
 void atom(int *value);
 // }} */
+
+// {{ from memory.cpp interpreter
+int is_var(char *s);
+int is_arr(char *s);
+void assign_var(char *var_name, int value);
+int find_var(char *s);
+void assign_arr_element(char *arr_name, int position, int value);
+int find_arr_element(char *arr_name, int position);
+int arr_exists(char *name);
+char *find_func(char *name);
+void call();
+// }}
 
 // {{ analyzer inner functions
 int look_up(char *s);

@@ -16,37 +16,28 @@
 #endif
 
 
-
 void testcase_global_vars(void);
+
+// {{ from memory.cpp
 int load_program(char *p, char *fname);
 int get_token(void);
+// }}
 
 int main(void)
 {
-	/* выделение памяти для программы */
 	if((p_buf = (char *) malloc(PROG_SIZE))==NULL) {
 		printf("Can not allocate memory");
 		exit(1);
 	}
 
-	/* загрузка программы для выполнения */
 	if(!load_program(p_buf, "analyzer.test")) exit(1);
 
-	/* установка указателя программы на начало буфера программы */
 	prog = p_buf;
 	testcase_global_vars();
-    
-    
 
 	return 0;
 }
 
-/* Тест синтаксического разбора кода: 
-
-	int i, j; 
-	char ch;
-
-*/
 void testcase_global_vars(void)
 {
 	cout << "Test input source is: \n" << endl;

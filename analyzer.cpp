@@ -72,7 +72,7 @@ int call_getche();  /* read char from keyboard */
 // }}
 
 struct intern_func_type {
-    char *f_name; /* имя функции */
+    const char *f_name; /* имя функции */
     int (*p)();   /* указатель на функцию */
 } intern_func[] = {
     "print", print,
@@ -267,7 +267,7 @@ void eval_exp4(int *value)
 /* Обработка выражения в скобках. */
 void eval_exp5(int *value)
 {
-    if((*token == '(')) {
+    if(*token == '(') {
         get_token();
         eval_exp0(value);   /* вычисление подвыражения */
         if(*token != ')') sntx_err(PAREN_EXPECTED);
@@ -510,7 +510,7 @@ void sntx_err(int error)
 	int linecount = 0;
 	register int i;
 
-    static char *e[]= {
+    static const char *e[]= {
         "синтаксическая ошибка",
         "несбалансированные скобки",
         "выражение отсутствует",

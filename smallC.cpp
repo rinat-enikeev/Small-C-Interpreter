@@ -55,7 +55,9 @@ int main(int argc, char *argv[])
     functos = 0;     /* инициализация индекса стека вызова (CALL) */
     
     /* первой вызывается main() */
-    prog = find_func("main"); /* поиск точки входа программы */
+    char *main = new char[4];
+    strcpy(main, "main");
+    prog = find_func(main); /* поиск точки входа программы */
     
     if(!prog) { /* функция main() неправильна или отсутствует */
         printf("main() не найдена.\n");

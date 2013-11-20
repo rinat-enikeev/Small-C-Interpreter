@@ -213,7 +213,7 @@ void assign_arr_element(char *arr_name, int position, int value)
         if(!strcmp(local_arr_stack[i].arr_name, arr_name)) {
             
             if (local_arr_stack[i].length <= position) {
-                sntx_err(SYNTAX); // todo: index out of bounds exception
+                sntx_err(INDEX_OUT_OF_BOUNDS); 
             }
             
             if (local_arr_stack[i].arr_type == INT) {
@@ -239,7 +239,7 @@ void assign_arr_element(char *arr_name, int position, int value)
             if(!strcmp(global_arrays[i].arr_name, arr_name)) {
                 
                 if (global_arrays[i].length <= position) {
-                    sntx_err(SYNTAX); // todo: index out of bounds exception
+                    sntx_err(INDEX_OUT_OF_BOUNDS);
                 }
                 
                 if (global_arrays[i].arr_type == INT) {
@@ -256,7 +256,7 @@ void assign_arr_element(char *arr_name, int position, int value)
                 }
                 return;
             }
-    sntx_err(SYNTAX); /* todo: NOT_ARR */
+    sntx_err(NOT_ARR);
 }
 
 int is_arr(char *s) {
@@ -427,7 +427,7 @@ void get_args(void)
     
     /* обработка списка значений */
     do {
-        // todo       eval_exp(&value);
+        eval_exp(&value);
         temp[count] = value;  /* временное запоминание */
         get_token();
         count++;
@@ -532,7 +532,6 @@ int load_program(char *p, char *fname)
 }
 
 
-// todo: syntx_error informative messages
 void decl_global_array(void)
 {
 	get_token(); // type
@@ -544,16 +543,16 @@ void decl_global_array(void)
     
 	get_token(); // [
 
-	if (*token != '[') sntx_err(SYNTAX);
+	if (*token != '[') sntx_err(ARRAY_BRACE_EXPECTED);
     
 	// important! comma separated definition of arrays are not supported
 	// user must define length of an array in definition
 	get_token();
-	if (token_type != NUMBER) sntx_err(SYNTAX);
+	if (token_type != NUMBER) sntx_err(NUM_EXPECTED);
 	int arr_length = atoi(token);
     
 	get_token(); // ]
-	if (*token != ']') sntx_err(SYNTAX);
+	if (*token != ']') sntx_err(ARRAY_BRACE_EXPECTED);
     
     global_arrays[garr_index].length = arr_length;
 	
@@ -599,7 +598,7 @@ int find_arr_element(char *arr_name, int position) {
         if(!strcmp(local_arr_stack[i].arr_name, token)) {
             
             if (local_arr_stack[i].length <= position) {
-                sntx_err(SYNTAX); // todo: index out of bounds exception
+                sntx_err(INDEX_OUT_OF_BOUNDS);
             }
             if (local_arr_stack[i].arr_type == INT) {
                 int *tmpArrStart = local_arr_stack[i].int_arr;
@@ -624,7 +623,7 @@ int find_arr_element(char *arr_name, int position) {
             if(!strcmp(global_arrays[i].arr_name, arr_name)) {
                 
                 if (global_arrays[i].length <= position) {
-                    sntx_err(SYNTAX); // todo: index out of bounds exception
+                    sntx_err(INDEX_OUT_OF_BOUNDS);
                 }
                 
                 if (global_arrays[i].arr_type == INT) {
@@ -640,7 +639,7 @@ int find_arr_element(char *arr_name, int position) {
                     exit(1);
                 }
             }
-    sntx_err(SYNTAX); /* todo: NOT_ARR */
+    sntx_err(NOT_ARR);
     return -1;
 }
 

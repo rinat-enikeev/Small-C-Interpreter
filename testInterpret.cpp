@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     }
     
     /* загрузка программы для выполнения */
-    if(!load_program(p_buf, "/Users/developer/Documents/smallC/Small-C-Interpreter/interpret.test")) exit(1);
+    if(!load_program(p_buf, "interpret.test")) exit(1);
     if(setjmp(e_buf)) exit(1); /* инициализация буфера long jump */
     
     gvar_index = 0;  /* инициализация индекса глобальных переменных */

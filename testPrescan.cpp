@@ -36,7 +36,7 @@ int main(void)
 		exit(1);
 	}
 
-	if(!load_program(p_buf, "/Users/developer/Documents/smallC/Small-C-Interpreter/arrays.test")) exit(1);
+	if(!load_program(p_buf, "arrays.test")) exit(1);
 	prog = p_buf;
 	testcase_arrays(); 
 

@@ -11,25 +11,25 @@
 #endif
 
 
-char token_type; /* ÒÓ‰ÂÊËÚ ÚËÔ ÎÂÍÒÂÏ˚ */
-char tok;		/* ‚ÌÛÚÂÌÌÂÂ ÔÂ‰ÒÚ‡‚ÎÂÌËÂ ÎÂÍÒÂÏ˚ */
-char *prog;    /* текущая позиция в исходном тексте программы */
-char *p_buf;   /* указывает на начало буфера программы */
-char token[80];	/* ÒÚÓÍÓ‚ÓÂ ÔÂ‰ÒÚ‡‚ÎÂÌËÂ ÎÂÍÒÂÏ˚ */
-jmp_buf e_buf; /* содержит информацию для longjmp() */
+char token_type; /* тип токена */
+char tok;		 /* внутреннее представление лексемы */
+char *prog;      /* текущая позиция в исходном тексте программы */
+char *p_buf;     /* указывает на начало буфера программы */
+char token[80];  /* строковое представление лексемы */
+jmp_buf e_buf;   /* содержит информацию для longjmp() */
 
-int functos;  /* индекс вершины стека вызова функции */
+int functos;	/* индекс вершины стека вызова функции */
 int func_index; /* индекс в таблице функций */
 int gvar_index; /* индекс в таблице глобальных переменных */
 int garr_index; /* index of global arrays */
-int lvartos; /* индекс в стеке локальных переменных */
-int larrtos; /* индекс в стеке локальных переменных */
+int lvartos;    /* индекс в стеке локальных переменных */
+int larrtos;	/* индекс в стеке локальных переменных */
 
-struct commands { /* Ú‡·ÎËˆ‡ Á‡ÂÁÂ‚ËÓ‚‡ÌÌ˚ı ÒÎÓ‚ */
+struct commands { /* Таблица зарезервированных слов */
     char command[20];
     char tok;
-} table[] = { /* ¬ ˝ÚÛ Ú‡·ÎËˆÛ */
-    "if", IF, /* ÍÓÏ‡Ì‰˚ ‰ÓÎÊÌ˚ ·˚Ú¸ ‚‚Â‰ÂÌ˚ Ì‡ ÌËÊÌÂÏ Â„ËÒÚÂ. */
+} table[] = {  /* В эту таблицу */
+    "if", IF,  /* команды должны быть введены на нижнем регистре. */
     "else", ELSE,
     "for", FOR,
     "do", DO,
@@ -38,20 +38,20 @@ struct commands { /* Ú‡·ÎËˆ‡ Á‡ÂÁÂ‚ËÓ‚‡ÌÌ˚ı 
     "int", INT,
     "return", RETURN,
     "end", END,
-    "", END  /* ÍÓÌÂˆ Ú‡·ÎËˆ˚ */
+    "", END  /* конец таблицы */
 };
 
 struct func_type {
     char func_name[ID_LEN];
     int ret_type;
-    char *loc;  /* ‡‰ÂÒ ÚÓ˜ÍË ‚ıÓ‰‡ ‚ Ù‡ÈÎ */
+    char *loc;  /* адрес точки входа в файл */
 } func_table[NUM_FUNC];
 
 int call_stack[NUM_FUNC];
 
-/* Ã‡ÒÒË‚ ˝ÚËı ÒÚÛÍÚÛ ÒÓ‰ÂÊËÚ ËÌÙÓÏ‡ˆË˛
- Ó „ÎÓ·‡Î¸Ì˚ı ÔÂÂÏÂÌÌ˚ı.
- */
+/* Массив этих структур содержит информацию
+   о глобальных переменных.
+*/
 struct var_type {
     char var_name[ID_LEN];
     int v_type;
@@ -567,19 +567,19 @@ void decl_global_array(void)
 	garr_index++;
 }
 
-/* Œ·˙ˇ‚ÎÂÌËÂ „ÎÓ·‡Î¸ÌÓÈ ÔÂÂÏÂÌÌÓÈ. */
+/* Объявление глобальной переменной. */
 void decl_global(void)
 {
 	int vartype;
     
-	get_token();  /* ÓÔÂ‰ÂÎÂÌËÂ ÚËÔ‡ */
+	get_token();  /* определение типа */
     
-	vartype = tok; /* Á‡ÔÓÏËÌ‡ÌËÂ ÚËÔ‡ ÔÂÂÏÂÌÌÓÈ */
+	vartype = tok; /* запоминание типа переменной */
     
-	do { /* Ó·‡·ÓÚÍ‡ ÒÔËÒÍ‡ */
+	do {  /* обработка списка */
 		global_vars[gvar_index].v_type = vartype;
-		global_vars[gvar_index].value = 0;  /* ËÌËˆË‡ÎËÁ‡ˆËˇ ÌÛÎÂÏ */
-		get_token();  /* ÓÔÂ‰ÂÎÂÌËÂ ËÏÂÌË */
+		global_vars[gvar_index].value = 0;  /* инициализация нулем */
+		get_token();  /* определение имени в *token */
 		strcpy(global_vars[gvar_index].var_name, token);
 		get_token();
 		gvar_index++;

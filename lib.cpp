@@ -14,7 +14,8 @@ int print(char *s); /* вывод строки на экран */
 int print(int i);   /* вывод целого числа на экран */
 int getnum(void);   /* read int from keyboard */
 int call_getche();  /* read char from keyboard */
-
+int call_put_char();
+int call_put_string(void);
 // }}
 
 // {{ analyzer.cpp functions
@@ -23,6 +24,33 @@ void putback(void);
 void sntx_err(int error);
 void eval_exp(int *value);
 // }}
+
+/* Вывод символа на экран. */
+int call_put_char()
+{
+    int value;
+    
+    eval_exp(&value);
+    printf("%c", value);
+    return value;
+}
+
+/* Вызов функции puts(). */
+int call_put_string(void)
+{
+    get_token();
+    if(*token!='(') sntx_err(PAREN_EXPECTED);
+    get_token();
+    if(token_type!=STRING) sntx_err(QUOTE_EXPECTED);
+    puts(token);
+    get_token();
+    if(*token!=')') sntx_err(PAREN_EXPECTED);
+    
+    get_token();
+    if(*token!=';') sntx_err(SEMI_EXPECTED);
+    putback();
+    return 0;
+}
 
 /* Считывание символа с консоли. Если компилятор
  не поддерживает _getche(), то следует

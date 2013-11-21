@@ -69,6 +69,8 @@ extern struct commands {
 int print(void); /* вывод строки на экран */
 int getnum(void);   /* read int from keyboard */
 int call_getche();  /* read char from keyboard */
+int call_put_string(void);
+int call_put_char();
 // }}
 
 struct intern_func_type {
@@ -78,6 +80,8 @@ struct intern_func_type {
     "print", print,
     "getnum", getnum,
     "getche", call_getche,
+    "putch", call_put_char,
+    "puts", call_put_string,
     "", 0  /* этот список заканчивается нулем */
 };
 

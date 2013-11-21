@@ -357,7 +357,7 @@ int get_token(void)
 // {{ пропуск пробелов, символов табуляции и пустой строки */
 	while(iswhite(*prog) && *prog) ++prog;
 
-	if(*prog == '\r' || *prog == '\n') {
+	while(*prog == '\r' || *prog == '\n') {
 		++prog;
         // COMPILER_SPECIFIC
 		while(iswhite(*prog) && *prog) ++prog;

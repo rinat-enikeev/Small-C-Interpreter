@@ -1,0 +1,29 @@
+/* Оператор цикла. */
+int main()
+{
+  int a;
+  char ch;
+
+  /* the while */
+  puts("Введите число: ");
+  a = getnum();
+  while(a) {
+    print(a);
+    print(a*a);
+    puts("");
+    a = a - 1;
+  }
+
+  /* цикл do-while */
+  puts("Введите символ, если выход, то 'q' ");
+  do {
+     ch = getche();
+  } while(ch !='q');
+
+  /* цикл for */
+  for(a=0; a<10; a = a + 1) {
+     print(a);
+  }
+
+  return 0;
+}

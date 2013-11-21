@@ -1,0 +1,20 @@
+/* Демонстрация рекурсивных функций. */
+
+/* возвращает факториал числа i */
+int factr(int i)
+{
+  if(i<2) {
+    return 1;
+  }
+  else {
+     return i * factr(i-1);
+  }
+}
+
+int main()
+{
+  print("Факториал от 4 равен: ");
+  print(factr(4));
+
+  return 0;
+}

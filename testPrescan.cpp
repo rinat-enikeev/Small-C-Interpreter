@@ -36,7 +36,9 @@ int main(void)
 		exit(1);
 	}
 
-	if(!load_program(p_buf, "arrays.test")) exit(1);
+    char *source = new char[12];
+    strcpy(source, "prescan.test");
+	if(!load_program(p_buf, source)) exit(1);
 	prog = p_buf;
 	testcase_arrays(); 
 
@@ -58,4 +60,6 @@ void testcase_arrays(void)
     cout << "global array index == 1: OK" << endl;
 	assert(global_arrays[0].arr_type == INT);
     cout << "global array type is INT: OK" << endl;
+    assert(!strcmp(global_arrays[0].arr_name, "array"));
+    cout << "global array name is 'array': OK" << endl;
 }

@@ -29,8 +29,9 @@ int main(void)
 		printf("Can not allocate memory");
 		exit(1);
 	}
-
-	if(!load_program(p_buf, "analyzer.test")) exit(1);
+    char *source = new char[13];
+    strcpy(source, "analyzer.test");
+	if(!load_program(p_buf, source)) exit(1);
 
 	prog = p_buf;
 	testcase_global_vars();
@@ -100,5 +101,9 @@ void testcase_global_vars(void)
     get_token(); // {
     assert(token_type == BLOCK);
     cout << "13 token type is BLOCK: OK" << endl;
+    
+    get_token(); // {
+    assert(token_type == BLOCK);
+    cout << "14 token type is BLOCK: OK" << endl;
     
 }

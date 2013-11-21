@@ -1,5 +1,7 @@
 int i, j; 
 char ch;
-int main() {
 
+
+int main() {
+    
 }

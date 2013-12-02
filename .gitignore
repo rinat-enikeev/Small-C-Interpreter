@@ -21,4 +21,4 @@ Object files
 *.hex
 
 # ide files
-/*.idea
+.idea/

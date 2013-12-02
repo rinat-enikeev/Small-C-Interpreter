@@ -1,0 +1,6 @@
+int array[6];
+
+int main() {
+    int local_array[8];
+    return 0;
+}

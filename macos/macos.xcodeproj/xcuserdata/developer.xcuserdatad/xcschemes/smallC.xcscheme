@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8BE4C7FF183E14A300AF07EA"
+               BlueprintIdentifier = "8B34BEEC184C813400CFDD66"
                BuildableName = "smallC"
                BlueprintName = "smallC"
                ReferencedContainer = "container:macos.xcodeproj">
@@ -32,7 +32,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8BE4C7FF183E14A300AF07EA"
+            BlueprintIdentifier = "8B34BEEC184C813400CFDD66"
             BuildableName = "smallC"
             BlueprintName = "smallC"
             ReferencedContainer = "container:macos.xcodeproj">
@@ -51,7 +51,7 @@
       <BuildableProductRunnable>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8BE4C7FF183E14A300AF07EA"
+            BlueprintIdentifier = "8B34BEEC184C813400CFDD66"
             BuildableName = "smallC"
             BlueprintName = "smallC"
             ReferencedContainer = "container:macos.xcodeproj">
@@ -69,7 +69,7 @@
       <BuildableProductRunnable>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8BE4C7FF183E14A300AF07EA"
+            BlueprintIdentifier = "8B34BEEC184C813400CFDD66"
             BuildableName = "smallC"
             BlueprintName = "smallC"
             ReferencedContainer = "container:macos.xcodeproj">

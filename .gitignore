@@ -1,4 +1,4 @@
-bject files
+Object files
 *.o
 *.ko
 *.obj
@@ -21,4 +21,4 @@ bject files
 *.hex
 
 # ide files
-*.idea
+/*.idea

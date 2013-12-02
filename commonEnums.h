@@ -2,13 +2,13 @@
 #define COMMON_ENUMS_DECL_H
 
 /**********************************************************************/
-enum tok_types {DELIMITER,  // знаки пунктуации и операторы
-				IDENTIFIER, // имена переменных и функций
-				NUMBER,     // числовая константа
-				KEYWORD,    // зарезервированные слова (while f.e.)
-                TEMP,		// вспомогательный тип токена для определения
-							// является токен KEYWORD или IDENTIFIER
-				STRING,		// строка
+enum tok_types {DELIMITER,  // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+				IDENTIFIER, // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+				NUMBER,     // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+				KEYWORD,    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ (while f.e.)
+                TEMP,		// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+							// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ KEYWORD пїЅпїЅпїЅ IDENTIFIER
+				STRING,		// пїЅпїЅпїЅпїЅпїЅпїЅ
 				BLOCK,		// { or }
 				ARRAY};		// [ or ]
 				
@@ -34,7 +34,7 @@ enum error_msg
       WHILE_EXPECTED, QUOTE_EXPECTED, NOT_TEMP,
       TOO_MANY_LVARS, DIV_BY_ZERO,
       ASSIGN_ARRAY_ILLEGAL,INDEX_OUT_OF_BOUNDS,
-      NOT_ARR,ARRAY_BRACE_EXPECTED, NUM_EXPECTED};
+      NOT_ARR,ARRAY_BRACE_EXPECTED, NUM_EXPECTED, TOO_MANY_LARRS};
 
 enum double_ops {LT=1,  // < 
 				 LE,	// <=

@@ -19,6 +19,11 @@
 			<key>orderHint</key>
 			<integer>2</integer>
 		</dict>
+		<key>testStrings.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
@@ -43,6 +48,11 @@
 			<true/>
 		</dict>
 		<key>8B34BF25184C83A500CFDD66</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8B70642E184C8D24006F2128</key>
 		<dict>
 			<key>primary</key>
 			<true/>

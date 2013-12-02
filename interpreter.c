@@ -81,7 +81,7 @@ struct array_type {
 
 struct array_type local_arr_stack[NUM_LOCAL_ARRS];
 
-
+void decl_local_array(void);
 void decl_global(void), sntx_err(int error), putback(void), decl_global_array(void);
 int load_program(char *p, char *fname);
 char *find_func(char *name);
@@ -320,8 +320,10 @@ void interp_block(void)
 {
     int value;
     char block = 0;
-    
+    char *tempProg;
+
     do {
+        tempProg = prog;
         token_type = get_token();
         
         /* При интерпритации одного операторавозврат
@@ -347,8 +349,15 @@ void interp_block(void)
             switch(tok) {
                 case CHAR:
                 case INT:     /* объявление локальной переменной */
-                    putback();
-                    decl_local();
+                    get_token(); // name
+                    get_token(); // [ or smth with local var
+                    if(token_type == ARRAY) {
+                        prog = tempProg;
+                        decl_local_array();
+                    } else {
+                        prog = tempProg;
+                        decl_local();
+                    }
                     break;
                 case RETURN:  /* возврат из вызова функции */
                     func_ret();
@@ -532,6 +541,47 @@ int load_program(char *p, char *fname)
     else *(p-1) = '\0';
     fclose(fp);
     return 1;
+}
+
+/* Объявление локального массива. */
+void decl_local_array(void)
+{
+    struct array_type newLocalArr;
+
+    get_token();  /* определение типа */
+    int arrtype = tok;
+    newLocalArr.arr_type = arrtype;
+
+    get_token(); // name
+    strcpy(newLocalArr.arr_name, token);
+
+    get_token(); // [
+    if (*token != '[') sntx_err(ARRAY_BRACE_EXPECTED);
+
+    get_token(); // number
+    if (token_type != NUMBER) sntx_err(NUM_EXPECTED);
+    int arr_length = atoi(token);
+    newLocalArr.length = arr_length;
+
+    get_token(); // ]
+    if (*token != ']') sntx_err(ARRAY_BRACE_EXPECTED);
+
+    // don't be dependent on compiler
+    if(arrtype == INT) {
+        newLocalArr.int_arr = (int *)malloc(sizeof(int) * arr_length);
+    } else if (arrtype == CHAR) {
+        newLocalArr.char_arr = (char *)malloc(sizeof(char) * arr_length);
+    }
+
+    get_token(); // ;
+    if(*token != ';') sntx_err(SEMI_EXPECTED);
+
+
+    if(lvartos > NUM_LOCAL_ARRS)
+        sntx_err(TOO_MANY_LARRS);
+
+    local_arr_stack[larrtos] = newLocalArr;
+    larrtos++;
 }
 
 

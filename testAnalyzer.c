@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 #include <stdlib.h>
-#include <iostream>
 
 #ifndef COMMON_ENUMS_DECL_H
 #include "commonEnums.h"
@@ -29,8 +29,7 @@ int main(void)
 		printf("Can not allocate memory");
 		exit(1);
 	}
-    char *source = new char[13];
-    strcpy(source, "analyzer.test");
+    char *source = "analyzer.test";
 	if(!load_program(p_buf, source)) exit(1);
 
 	prog = p_buf;
@@ -41,69 +40,69 @@ int main(void)
 
 void testcase_global_vars(void)
 {
-	cout << "Test input source is: \n" << endl;
-	cout << "________________________________________ \n" << endl;
-	cout << p_buf << endl;
-	cout << "________________________________________ \n" << endl;
+	printf("Test input source is: \n");
+    printf("________________________________________ \n");
+    printf(p_buf);
+    printf("________________________________________ \n");
 	
 	prog = p_buf;
 
 	get_token(); // "int"
 	assert(tok == INT);
 	assert(token_type == KEYWORD);
-	cout << "1 token is INT, type is KEYWORD: OK" << endl;
+    printf("1 token is INT, type is KEYWORD: OK \n");
 
 	get_token(); // "i"
 	assert(token_type == IDENTIFIER);
-	cout << "2 token type is IDENTIFIER: OK" << endl;
+	printf("2 token type is IDENTIFIER: OK \n");
 
 	get_token(); // ","
 	assert(token_type == DELIMITER);
-	cout << "3 token type is DELIMITER: OK" << endl;
+	printf("3 token type is DELIMITER: OK \n");
 
 	get_token(); // "j"
 	assert(token_type == IDENTIFIER);
-	cout << "4 token type is IDENTIFIER: OK" << endl;
+	printf("4 token type is IDENTIFIER: OK \n");
 
 	get_token(); // ";"
 	assert(token_type == DELIMITER);
-	cout << "5 token type is DELIMITER: OK" << endl;
+	printf("5 token type is DELIMITER: OK \n");
 
 	get_token(); // "char"
 	assert(tok == CHAR);
 	assert(token_type == KEYWORD);
-	cout << "6 token is CHAR, type is KEYWORD: OK" << endl;
+	printf("6 token is CHAR, type is KEYWORD: OK \n");
 
 	get_token(); // "ch"
 	assert(token_type == IDENTIFIER);
-	cout << "7 token type is IDENTIFIER: OK" << endl;
+	printf("7 token type is IDENTIFIER: OK \n");
 
 	get_token(); // ";"
 	assert(token_type == DELIMITER);
-	cout << "8 token type is DELIMITER: OK" << endl;
+	printf("8 token type is DELIMITER: OK \n");
     
     get_token(); // int
     assert(token_type == KEYWORD);
-    cout << "9 token type is KEYWORD: OK" << endl;
+    printf("9 token type is KEYWORD: OK \n");
     
     get_token(); // main
     assert(token_type == IDENTIFIER);
-    cout << "10 token type is IDENTIFIER: OK" << endl;
+    printf("10 token type is IDENTIFIER: OK \n");
     
     get_token(); // (
     assert(token_type == DELIMITER);
-    cout << "11 token type is DELIMITER: OK" << endl;
+    printf("11 token type is DELIMITER: OK \n");
     
     get_token(); // )
     assert(token_type == DELIMITER);
-    cout << "12 token type is DELIMITER: OK" << endl;
+    printf("12 token type is DELIMITER: OK \n");
     
     get_token(); // {
     assert(token_type == BLOCK);
-    cout << "13 token type is BLOCK: OK" << endl;
+    printf("13 token type is BLOCK: OK \n");
     
     get_token(); // {
     assert(token_type == BLOCK);
-    cout << "14 token type is BLOCK: OK" << endl;
+    printf("14 token type is BLOCK: OK \n");
     
 }

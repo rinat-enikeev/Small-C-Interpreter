@@ -19,6 +19,11 @@
 			<key>orderHint</key>
 			<integer>6</integer>
 		</dict>
+		<key>testArrays.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>8</integer>
+		</dict>
 		<key>testInnerLoops.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -47,6 +52,16 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>8B734158184C772500918896</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8B73416C184C783400918896</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>8BE4C7FF183E14A300AF07EA</key>
 		<dict>
 			<key>primary</key>

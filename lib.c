@@ -11,7 +11,7 @@
 
 // {{ core functions
 int print(char *s); /* вывод строки на экран */
-int print(int i);   /* вывод целого числа на экран */
+//int print(int i);   /* вывод целого числа на экран */
 int getnum(void);   /* read int from keyboard */
 int call_getche();  /* read char from keyboard */
 int call_put_char();
@@ -76,7 +76,7 @@ int getnum(void)
 }
 
 /* Встроенная функция консольного вывода. */
-int print(void)
+int print(char* s)
 {
     int i;
     

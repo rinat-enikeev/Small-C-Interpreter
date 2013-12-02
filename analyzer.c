@@ -4,6 +4,7 @@
 */
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifndef EXTERN_VAR_DECL_H
@@ -16,11 +17,6 @@
 
 #ifndef RESTRICTIONS_DECL_H
 #include "restrictions.h"
-#endif
-
-#if DEBUG
-#include <iostream>
-using namespace std;
 #endif
 
 // {{ core functons

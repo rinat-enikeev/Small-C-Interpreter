@@ -20,3 +20,5 @@ bject files
 *.app
 *.hex
 
+# ide files
+*.idea

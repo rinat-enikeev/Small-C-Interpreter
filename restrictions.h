@@ -11,15 +11,7 @@
 #define NUM_PARAMS        31    /* максимальное количество параметров функции */
 #define PROG_SIZE         10000 /* максимальный	размер программы в символах */
 
-#define DEBUG 1
-
 #endif // RESTRICTIONS_DECL_H
-
-#if DEBUG 
-#include <assert.h>
-#include <iostream>
-using namespace std;
-#endif
 
 /* Documentation */
 // 1. SmallC allows only /* ... */ /* comments */

@@ -13,6 +13,7 @@
 #include "restrictions.h"
 #endif
 
+#include <stdio.h>
 
 /* {{ functions from memory.cpp */
 void prescan(void);
@@ -55,8 +56,7 @@ int main(int argc, char *argv[])
     functos = 0;     /* инициализация индекса стека вызова (CALL) */
     
     /* первой вызывается main() */
-    char *main = new char[4];
-    strcpy(main, "main");
+    char *main = "main";
     prog = find_func(main); /* поиск точки входа программы */
     
     if(!prog) { /* функция main() неправильна или отсутствует */

@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
 #ifndef EXTERN_VAR_DECL_H
 #include "externVars.h"
@@ -36,8 +38,7 @@ int main(void)
 		exit(1);
 	}
 
-    char *source = new char[12];
-    strcpy(source, "prescan.test");
+    char *source = "prescan.test";
 	if(!load_program(p_buf, source)) exit(1);
 	prog = p_buf;
 	testcase_arrays(); 
@@ -47,19 +48,19 @@ int main(void)
 
 void testcase_arrays(void)
 {
-	cout << "Test input source is: " << endl;
-	cout << "________________________________________" << endl;
-	cout << p_buf << endl;
-	cout << "________________________________________" << endl;
+	printf("Test input source is: ");
+	printf("________________________________________");
+	printf(p_buf);
+	printf("________________________________________");
 	
-	cout << "entering prescan..." << endl;
+	printf("entering prescan...");
 	prescan(); // int [] array; 
-	cout << "prescan ended." << endl;
+	printf("prescan ended.");
 
 	assert(garr_index == 1);
-    cout << "global array index == 1: OK" << endl;
+    printf("global array index == 1: OK \n");
 	assert(global_arrays[0].arr_type == INT);
-    cout << "global array type is INT: OK" << endl;
+    printf("global array type is INT: OK \n");
     assert(!strcmp(global_arrays[0].arr_name, "array"));
-    cout << "global array name is 'array': OK" << endl;
+    printf("global array name is 'array': OK \n");
 }

@@ -10,6 +10,9 @@
 #include "restrictions.h"
 #endif
 
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /* {{ entry point to analyzer.cpp */
 void eval_exp(int *value);

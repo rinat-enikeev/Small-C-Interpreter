@@ -7,7 +7,17 @@
 		<key>smallC.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
+		<key>testAnalyzer.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
 			<integer>1</integer>
+		</dict>
+		<key>testPrescan.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
@@ -18,6 +28,21 @@
 			<true/>
 		</dict>
 		<key>8B34BEEC184C813400CFDD66</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8B34BF04184C831D00CFDD66</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8B34BF11184C834700CFDD66</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8B34BF25184C83A500CFDD66</key>
 		<dict>
 			<key>primary</key>
 			<true/>

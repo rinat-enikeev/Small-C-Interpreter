@@ -11,6 +11,16 @@
 		8B34BEFE184C818E00CFDD66 /* interpreter.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BEFA184C818E00CFDD66 /* interpreter.c */; };
 		8B34BEFF184C818E00CFDD66 /* lib.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BEFB184C818E00CFDD66 /* lib.c */; };
 		8B34BF00184C818E00CFDD66 /* smallC.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BEFD184C818E00CFDD66 /* smallC.c */; };
+		8B34BF1D184C836700CFDD66 /* testAnalyzer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BF1C184C836700CFDD66 /* testAnalyzer.c */; };
+		8B34BF1E184C836E00CFDD66 /* lib.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BEFB184C818E00CFDD66 /* lib.c */; };
+		8B34BF1F184C837200CFDD66 /* analyzer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BEF6184C817F00CFDD66 /* analyzer.c */; };
+		8B34BF20184C837400CFDD66 /* interpreter.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BEFA184C818E00CFDD66 /* interpreter.c */; };
+		8B34BF21184C837D00CFDD66 /* analyzer.test in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8B34BF1B184C836700CFDD66 /* analyzer.test */; };
+		8B34BF31184C83B500CFDD66 /* testPrescan.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BF30184C83B500CFDD66 /* testPrescan.c */; };
+		8B34BF32184C83BB00CFDD66 /* interpreter.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BEFA184C818E00CFDD66 /* interpreter.c */; };
+		8B34BF33184C83BE00CFDD66 /* lib.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BEFB184C818E00CFDD66 /* lib.c */; };
+		8B34BF34184C83C100CFDD66 /* analyzer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BEF6184C817F00CFDD66 /* analyzer.c */; };
+		8B34BF35184C83C800CFDD66 /* prescan.test in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8B34BF2F184C83B500CFDD66 /* prescan.test */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,6 +33,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		8B34BF10184C834700CFDD66 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				8B34BF21184C837D00CFDD66 /* analyzer.test in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8B34BF24184C83A500CFDD66 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				8B34BF35184C83C800CFDD66 /* prescan.test in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -34,10 +64,30 @@
 		8B34BEFB184C818E00CFDD66 /* lib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lib.c; path = ../../lib.c; sourceTree = "<group>"; };
 		8B34BEFC184C818E00CFDD66 /* restrictions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = restrictions.h; path = ../../restrictions.h; sourceTree = "<group>"; };
 		8B34BEFD184C818E00CFDD66 /* smallC.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = smallC.c; path = ../../smallC.c; sourceTree = "<group>"; };
+		8B34BF12184C834700CFDD66 /* testAnalyzer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testAnalyzer; sourceTree = BUILT_PRODUCTS_DIR; };
+		8B34BF1B184C836700CFDD66 /* analyzer.test */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = analyzer.test; path = ../../analyzer.test; sourceTree = "<group>"; };
+		8B34BF1C184C836700CFDD66 /* testAnalyzer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testAnalyzer.c; path = ../../testAnalyzer.c; sourceTree = "<group>"; };
+		8B34BF26184C83A500CFDD66 /* testPrescan */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testPrescan; sourceTree = BUILT_PRODUCTS_DIR; };
+		8B34BF2F184C83B500CFDD66 /* prescan.test */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = prescan.test; path = ../../prescan.test; sourceTree = "<group>"; };
+		8B34BF30184C83B500CFDD66 /* testPrescan.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testPrescan.c; path = ../../testPrescan.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		8B34BEEA184C813400CFDD66 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8B34BF0F184C834700CFDD66 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8B34BF23184C83A500CFDD66 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -51,6 +101,8 @@
 			isa = PBXGroup;
 			children = (
 				8B34BEEE184C813400CFDD66 /* smallC */,
+				8B34BF13184C834700CFDD66 /* testAnalyzer */,
+				8B34BF27184C83A500CFDD66 /* testPrescan */,
 				8B34BEDE184C811800CFDD66 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -59,6 +111,8 @@
 			isa = PBXGroup;
 			children = (
 				8B34BEED184C813400CFDD66 /* smallC */,
+				8B34BF12184C834700CFDD66 /* testAnalyzer */,
+				8B34BF26184C83A500CFDD66 /* testPrescan */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -75,6 +129,24 @@
 				8B34BEF6184C817F00CFDD66 /* analyzer.c */,
 			);
 			path = smallC;
+			sourceTree = "<group>";
+		};
+		8B34BF13184C834700CFDD66 /* testAnalyzer */ = {
+			isa = PBXGroup;
+			children = (
+				8B34BF1B184C836700CFDD66 /* analyzer.test */,
+				8B34BF1C184C836700CFDD66 /* testAnalyzer.c */,
+			);
+			path = testAnalyzer;
+			sourceTree = "<group>";
+		};
+		8B34BF27184C83A500CFDD66 /* testPrescan */ = {
+			isa = PBXGroup;
+			children = (
+				8B34BF2F184C83B500CFDD66 /* prescan.test */,
+				8B34BF30184C83B500CFDD66 /* testPrescan.c */,
+			);
+			path = testPrescan;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -95,6 +167,40 @@
 			name = smallC;
 			productName = smallC;
 			productReference = 8B34BEED184C813400CFDD66 /* smallC */;
+			productType = "com.apple.product-type.tool";
+		};
+		8B34BF11184C834700CFDD66 /* testAnalyzer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8B34BF18184C834700CFDD66 /* Build configuration list for PBXNativeTarget "testAnalyzer" */;
+			buildPhases = (
+				8B34BF0E184C834700CFDD66 /* Sources */,
+				8B34BF0F184C834700CFDD66 /* Frameworks */,
+				8B34BF10184C834700CFDD66 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = testAnalyzer;
+			productName = testAnalyzer;
+			productReference = 8B34BF12184C834700CFDD66 /* testAnalyzer */;
+			productType = "com.apple.product-type.tool";
+		};
+		8B34BF25184C83A500CFDD66 /* testPrescan */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8B34BF2C184C83A500CFDD66 /* Build configuration list for PBXNativeTarget "testPrescan" */;
+			buildPhases = (
+				8B34BF22184C83A500CFDD66 /* Sources */,
+				8B34BF23184C83A500CFDD66 /* Frameworks */,
+				8B34BF24184C83A500CFDD66 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = testPrescan;
+			productName = testPrescan;
+			productReference = 8B34BF26184C83A500CFDD66 /* testPrescan */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -119,6 +225,8 @@
 			projectRoot = "";
 			targets = (
 				8B34BEEC184C813400CFDD66 /* smallC */,
+				8B34BF11184C834700CFDD66 /* testAnalyzer */,
+				8B34BF25184C83A500CFDD66 /* testPrescan */,
 			);
 		};
 /* End PBXProject section */
@@ -132,6 +240,28 @@
 				8B34BF00184C818E00CFDD66 /* smallC.c in Sources */,
 				8B34BEFE184C818E00CFDD66 /* interpreter.c in Sources */,
 				8B34BEF7184C817F00CFDD66 /* analyzer.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8B34BF0E184C834700CFDD66 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8B34BF20184C837400CFDD66 /* interpreter.c in Sources */,
+				8B34BF1F184C837200CFDD66 /* analyzer.c in Sources */,
+				8B34BF1E184C836E00CFDD66 /* lib.c in Sources */,
+				8B34BF1D184C836700CFDD66 /* testAnalyzer.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8B34BF22184C83A500CFDD66 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8B34BF34184C83C100CFDD66 /* analyzer.c in Sources */,
+				8B34BF33184C83BE00CFDD66 /* lib.c in Sources */,
+				8B34BF32184C83BB00CFDD66 /* interpreter.c in Sources */,
+				8B34BF31184C83B500CFDD66 /* testPrescan.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -224,6 +354,42 @@
 			};
 			name = Release;
 		};
+		8B34BF19184C834700CFDD66 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		8B34BF1A184C834700CFDD66 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		8B34BF2D184C83A500CFDD66 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		8B34BF2E184C83A500CFDD66 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -241,6 +407,22 @@
 			buildConfigurations = (
 				8B34BEF4184C813400CFDD66 /* Debug */,
 				8B34BEF5184C813400CFDD66 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		8B34BF18184C834700CFDD66 /* Build configuration list for PBXNativeTarget "testAnalyzer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8B34BF19184C834700CFDD66 /* Debug */,
+				8B34BF1A184C834700CFDD66 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		8B34BF2C184C83A500CFDD66 /* Build configuration list for PBXNativeTarget "testPrescan" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8B34BF2D184C83A500CFDD66 /* Debug */,
+				8B34BF2E184C83A500CFDD66 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};

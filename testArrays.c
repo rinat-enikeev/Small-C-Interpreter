@@ -34,7 +34,7 @@ int main(void)
         printf("Can not allocate memory");
         exit(1);
     }
-    char *source = "strings.test";
+    char *source = "arrays.test";
     if(!load_program(p_buf, source)) exit(1);
 
     if(setjmp(e_buf)) exit(1); /* инициализация буфера long jump */

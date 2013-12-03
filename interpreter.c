@@ -82,14 +82,15 @@ struct array_type {
 struct array_type local_arr_stack[NUM_LOCAL_ARRS];
 
 void decl_local_array(void);
-void decl_global(void), sntx_err(int error), putback(void), decl_global_array(void);
+void decl_global_var(void);
+void sntx_err(int error), putback(void), decl_global_array(void);
 int load_program(char *p, char *fname);
 char *find_func(char *name);
 void call(void);
 void get_params(void), get_args(void), func_push(int i);
 int  func_pop(void);
 void func_ret(void);
-void local_push(struct var_type i);
+void local_var_push(struct var_type i);
 void free_arr();
 
 int ret_value; /* возвращаемое значение функции */
@@ -141,7 +142,7 @@ void prescan(void)
                     decl_global_array();
                 } else if(*token != '(') { /* это должна быть глобальная переменная */
 					prog = tp; /* возврат в начало объявления */
-					decl_global();
+                    decl_global_var();
 				} else if(*token == '(') {  /* это должна быть функция */
 					func_table[func_index].loc = prog;
 					func_table[func_index].ret_type = datatype;
@@ -291,7 +292,7 @@ void decl_local(void)
     do { /* обработка списка */
         get_token(); /* определение типа пременной */
         strcpy(i.var_name, token);
-        local_push(i);
+        local_var_push(i);
         get_token();
     } while(*token == ',');
     if(*token != ';') sntx_err(SEMI_EXPECTED);
@@ -398,11 +399,38 @@ void find_eob(void)
     } while(brace);
 }
 
+
+/* Затолкнуть локальную переменную. */
+void local_arr_push(struct array_type *arr)
+{
+    if(larrtos > NUM_LOCAL_ARRS)
+        sntx_err(TOO_MANY_LARRS);
+
+    local_arr_stack[larrtos] = *arr;
+    larrtos++;
+}
+
+struct array_type* get_arr(char *name) {
+    register int i;
+    /* проверка наличия переменной */
+    for(i=larrtos-1; i >= call_stack[functos-1]; i--) {
+        if(!strcmp(local_arr_stack[i].arr_name, name)) {
+            return &local_arr_stack[i];
+        }
+    }
+    for(i=0; i < NUM_GLOBAL_ARRAYS; i++) {
+        if(!strcmp(global_arrays[i].arr_name, name)) {
+            return &global_arrays[i];
+        }
+    }
+    return 0;
+}
+
 /* Вызов функции. */
 void call(void)
 {
     char *loc, *temp;
-    int lvartemp;
+    int lvartemp, larrtemp;
     
     loc = find_func(token); /* найти точку входа функции */
     if(loc == NULL)
@@ -410,17 +438,23 @@ void call(void)
     else {
         lvartemp = lvartos;  /* запоминание индекса стека
                               локальных переменных */
+
         get_args();  /* получение аргумента функции */
+
         temp = prog; /* запоминание адреса возврата */
+
         func_push(lvartemp);  /* запоминание индекса стека
                                локальных переменных */
+
         prog = loc;  /* переустановка prog в начало функции */
         get_params(); /* загрузка параметров функции
                        значениями аргументов */
+
         interp_block(); /* интерпретация функции */
+
         prog = temp; /* восстановление prog */
-        lvartos = func_pop(); /* восстановление стека
-                               локальных переменных */
+
+        lvartos = func_pop(); /* восстановление стека локальных переменных */
     }
 }
 
@@ -439,45 +473,90 @@ void get_args(void)
     
     /* обработка списка значений */
     do {
+
+        // {{ check if array is passed by reference
+        char *tempProg = prog;
+        get_token();             // name or number
+        if (*token == ')') break;
+        char * copy = malloc(strlen(token) + 1);
+        strcpy(copy, token);
+        if (is_arr(token)) {
+            get_token();         // '[' or ','
+            if (*token == ',') { // array is passed by pointer
+                local_arr_push(get_arr(copy));
+                continue;        // array was pushed into local array stack
+            } else {
+                prog = tempProg;
+            }
+        } else {
+            prog = tempProg;
+        }
+        free(copy);
+        // }}
+
         eval_exp(&value);
         temp[count] = value;  /* временное запоминание */
         get_token();
         count++;
-    }while(*token == ',');
+    } while (*token == ',');
+
     count--;
     /* затолкнуть в local_var_stack в обратном порядке */
     for(; count>=0; count--) {
         i.value = temp[count];
         i.v_type = ARG;
-        local_push(i);
+        local_var_push(i);
     }
 }
+
+
 
 /* Получение параметров функции. */
 void get_params(void)
 {
-    struct var_type *p;
-    int i;
+    struct var_type *var;
+    int varIdx;
+    struct array_type *arr;
+    int arrIdx;
+    char copyTokenType;
     
-    i = lvartos-1;
+    varIdx = lvartos - 1;
+    arrIdx = larrtos - 1;
     do { /* обработка списка параметров */
         get_token();
-        p = &local_var_stack[i];
+
         if(*token != ')' ) {
+
             if(tok != INT && tok != CHAR)
                 sntx_err(TYPE_EXPECTED);
-            
-            p->v_type = token_type;
-            get_token();
-            
-            /* связывание имени пераметров с аргументом,
-             уже находящимся в стеке локальных переменных */
-            strcpy(p->var_name, token);
-            get_token();
-            i--;
+
+            copyTokenType = tok;
+
+            get_token(); // var or arr name
+            char * nameCopy = malloc(strlen(token) + 1);
+            strcpy(nameCopy, token);
+
+            if (*token == ')') break;
+
+            get_token(); // '[' or ','
+            if (token_type == ARRAY) {
+                arr = &local_arr_stack[arrIdx];
+                arr->arr_type = copyTokenType;
+                strcpy(arr->arr_name, nameCopy);
+                get_token(); // ']'
+                get_token(); // ','
+                arrIdx--;
+            } else {
+                var = &local_var_stack[varIdx];
+                var->v_type = copyTokenType;
+                strcpy(var->var_name, nameCopy);
+                varIdx--;
+            }
+        } else {
+            break;
         }
-        else break;
     } while(*token == ',');
+
     if(*token != ')') sntx_err(PAREN_EXPECTED);
 }
 
@@ -499,7 +578,7 @@ int func_pop(void)
 }
 
 /* Затолкнуть локальную переменную. */
-void local_push(struct var_type i)
+void local_var_push(struct var_type i)
 {
     if(lvartos > NUM_LOCAL_VARS)
         sntx_err(TOO_MANY_LVARS);
@@ -598,7 +677,7 @@ void decl_global_array(void)
 
 	if (*token != '[') sntx_err(ARRAY_BRACE_EXPECTED);
     
-	// important! comma separated definition of arrays are not supported
+	// important! comma separated definitions of arrays are not supported
 	// user must define length of an array in definition
 	get_token();
 	if (token_type != NUMBER) sntx_err(NUM_EXPECTED);
@@ -622,7 +701,7 @@ void decl_global_array(void)
 }
 
 /* Объявление глобальной переменной. */
-void decl_global(void)
+void decl_global_var(void)
 {
 	int vartype;
     
@@ -646,7 +725,7 @@ void decl_global(void)
 int find_arr_element(char *arr_name, int position) {
     register int i;
     
-    /* проверка наличия переменной */
+    /* проверка наличия локального массива */
     for(i=larrtos-1; i >= call_stack[functos-1]; i--) {
         if(!strcmp(local_arr_stack[i].arr_name, token)) {
             
@@ -670,8 +749,8 @@ int find_arr_element(char *arr_name, int position) {
     }
     
     if(i < call_stack[functos-1])
-    /* если переменная нелокальная,
-     ищем ее в таблице глобальных переменных */
+    /* если массив нелокальный,
+     ищем ее в таблице глобальных массивов */
         for(i=0; i < NUM_GLOBAL_ARRAYS; i++)
             if(!strcmp(global_arrays[i].arr_name, arr_name)) {
                 

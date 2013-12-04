@@ -1,28 +1,4 @@
-#include <string.h>
-#include <stdlib.h>
-
-#ifndef EXTERN_VAR_DECL_H
-#include "externVars.h"
-#endif
-
-#ifndef COMMON_ENUMS_DECL_H
-#include "commonEnums.h"
-#endif
-
-#ifndef RESTRICTIONS_DECL_H
-#include "restrictions.h"
-#endif
-
-#include <stdio.h>
-
-/* {{ functions from memory.cpp */
-void prescan(void);
-int load_program(char *p, char *fname);
-char *find_func(char *name);
-void call(void);
-void free_arr();
-/* }} */
-
+#include "common.h"
 
 int main(int argc, char *argv[]) {
   printf("Среды программирования. Курсовая работа. \n");
@@ -59,8 +35,8 @@ int main(int argc, char *argv[]) {
   functos = 0;     /* инициализация индекса стека вызова (CALL) */
 
   /* первой вызывается main() */
-  char *main = "main";
-  prog = find_func(main); /* поиск точки входа программы */
+  char *main_ = "main";
+  prog = find_func(main_); /* поиск точки входа программы */
 
   if(!prog) { /* функция main() неправильна или отсутствует */
     printf("main() не найдена.\n");

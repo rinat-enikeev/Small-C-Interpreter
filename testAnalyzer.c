@@ -1,27 +1,7 @@
-#include <stdio.h>
+#include "common.h"
 #include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-
-#ifndef COMMON_ENUMS_DECL_H
-#include "commonEnums.h"
-#endif
-
-#ifndef RESTRICTIONS_DECL_H
-#include "restrictions.h"
-#endif
-
-#ifndef EXTERN_VAR_DECL_H
-#include "externVars.h"
-#endif
-
 
 void testcase_global_vars(void);
-
-// {{ from memory.cpp
-int load_program(char *p, char *fname);
-int get_token(void);
-// }}
 
 int main(void) {
   if((p_buf = (char *) malloc(PROG_SIZE))==NULL) {

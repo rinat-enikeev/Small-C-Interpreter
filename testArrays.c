@@ -1,20 +1,5 @@
-#include <stdio.h>
+#include "common.h"
 #include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-
-#ifndef COMMON_ENUMS_DECL_H
-#include "commonEnums.h"
-#endif
-
-#ifndef RESTRICTIONS_DECL_H
-#include "restrictions.h"
-#endif
-
-#ifndef EXTERN_VAR_DECL_H
-#include "externVars.h"
-#endif
-
 
 void testcase_global_vars(void);
 
@@ -54,8 +39,8 @@ int main(void) {
   functos = 0;     /* инициализация индекса стека вызова (CALL) */
 
   /* первой вызывается main() */
-  char *main = "main";
-  prog = find_func(main); /* поиск точки входа программы */
+  char *main_ = "main";
+  prog = find_func(main_); /* поиск точки входа программы */
 
   if(!prog) { /* функция main() неправильна или отсутствует */
     printf("main() не найдена.\n");

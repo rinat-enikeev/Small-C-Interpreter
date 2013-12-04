@@ -2,85 +2,30 @@
    целочисленных выражений, содержащих переменные
    и вызовы функций.
 */
-#include <ctype.h>
+#include "externVars.h"
+#include "commonEnums.h"
+#include "restrictions.h"
+#include "analyzer.h"
+#include "interpreter.h"
+#include "libc.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
-#ifndef EXTERN_VAR_DECL_H
-#include "externVars.h"
-#endif
-
-#ifndef COMMON_ENUMS_DECL_H
-#include "commonEnums.h"
-#endif
-
-#ifndef RESTRICTIONS_DECL_H
-#include "restrictions.h"
-#endif
-
-// {{ core functons
-int get_token(void);
-
-void eval_exp(int *value);
-void eval_exp0(int *value); // =
-void eval_exp1(int *value); // < > <= >=
-void eval_exp2(int *value); // + -
-void eval_exp3(int *value); // * /
-void eval_exp4(int *value); // унарный + -
-void eval_exp5(int *value); // ()
-void atom(int *value);      // terminal
-// }} */
-
-// {{ from memory.cpp interpreter
-int is_var(char *s);
-int is_arr(char *s);
-void assign_var(char *var_name, int value);
-int find_var(char *s);
-void assign_arr_element(char *arr_name, int position, int value);
-int find_arr_element(char *arr_name, int position);
-int arr_exists(char *name);
-char *find_func(char *name);
-void call();
-// }}
-
-// {{ analyzer inner functions
-int look_up(char *s);
-int isdelim(char c), iswhite(char c);
-void sntx_err(int error);
-void putback(void);
-void arr_index_atom(int *value);
-int internal_func(char *s);
-char *find_func(char *name);
-// }}
-
-/* Таблица зарезервированных слов */
-/*extern */struct commands; /*{
-  char command[20];
-  char tok;
-} table[];*/
-
-
-// {{ lib functions from lib.cpp
-int print(char *s); /* вывод строки на экран */
-int getnum(void);   /* read int from keyboard */
-int call_getche();  /* read char from keyboard */
-int call_put_string(void);
-int call_put_char();
-// }}
 
 struct intern_func_type {
   const char *f_name; /* имя функции */
   int (*p)();   /* указатель на функцию */
 } intern_func[] = {
-  "print", print,
-  "getnum", getnum,
-  "getche", call_getche,
-  "putch", call_put_char,
-  "puts", call_put_string,
-  "", 0  /* этот список заканчивается нулем */
+  {"print", print},
+  {"getnum", getnum},
+  {"getche", call_getche},
+  {"putch", call_put_char},
+  {"puts", call_put_string},
+  {"", 0}  /* этот список заканчивается нулем */
 };
-
 
 /* Entry point to evaluate expression in syntax tree */
 void eval_exp(int *value) {
@@ -532,8 +477,6 @@ int get_token(void) {
   return token_type;
 }
 
-
-
 /* Вывод сообщения об ошибке. */
 void sntx_err(int error) {
   char *p, *temp;
@@ -602,7 +545,6 @@ int iswhite(char c) {
     return 0;
   }
 }
-
 
 /* Поиск внутреннего представления лексемы
    в таблице лексем.

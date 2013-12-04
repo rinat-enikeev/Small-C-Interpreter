@@ -1,23 +1,12 @@
-#ifndef EXTERN_VAR_DECL_H
 #include "externVars.h"
-#endif
-
-#ifndef COMMON_ENUMS_DECL_H
 #include "commonEnums.h"
-#endif
-
-#ifndef RESTRICTIONS_DECL_H
 #include "restrictions.h"
-#endif
+#include "analyzer.h"
+#include "interpreter.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-/* {{ entry point to analyzer.cpp */
-void eval_exp(int *value);
-int get_token(void);
-// }}
 
 
 char token_type; /* тип токена */
@@ -34,20 +23,18 @@ int garr_index; /* index of global arrays */
 int lvartos;    /* индекс в стеке локальных переменных */
 int larrtos;  /* индекс в стеке локальных переменных */
 
-struct commands { /* Таблица зарезервированных слов */
-  char command[20];
-  char tok;
-} table[] = {  /* В эту таблицу */
-  "if", IF,  /* команды должны быть введены на нижнем регистре. */
-  "else", ELSE,
-  "for", FOR,
-  "do", DO,
-  "while", WHILE,
-  "char", CHAR,
-  "int", INT,
-  "return", RETURN,
-  "end", END,
-  "", END  /* конец таблицы */
+/* Таблица зарезервированных слов */
+struct commands table[] = {  /* В эту таблицу */
+  {"if", IF},  /* команды должны быть введены на нижнем регистре. */
+  {"else", ELSE},
+  {"for", FOR},
+  {"do", DO},
+  {"while", WHILE},
+  {"char", CHAR},
+  {"int", INT},
+  {"return", RETURN},
+  {"end", END},
+  {"", END}  /* конец таблицы */
 };
 
 struct func_type {
@@ -65,7 +52,7 @@ struct var_type {
   char var_name[ID_LEN];
   int v_type;
   int value;
-}  global_vars[NUM_GLOBAL_VARS];
+} global_vars[NUM_GLOBAL_VARS];
 
 struct var_type local_var_stack[NUM_LOCAL_VARS];
 
@@ -81,29 +68,7 @@ struct array_type {
 
 struct array_type local_arr_stack[NUM_LOCAL_ARRS];
 
-void decl_local_array(void);
-void decl_global_var(void);
-void sntx_err(int error), putback(void), decl_global_array(void);
-int load_program(char *p, char *fname);
-char *find_func(char *name);
-void call(void);
-void get_params(void), get_args(void), func_push(int i);
-int  func_pop(void);
-void func_ret(void);
-void local_var_push(struct var_type i);
-void free_arr();
-
 int ret_value; /* возвращаемое значение функции */
-
-// {{ program flow functions
-void exec_if(void);
-void find_eob(void);
-void exec_while(void);
-void exec_do(void);
-void exec_for(void);
-// }}
-
-
 
 /* Найти адреса всех функций в программе
  и запомнить глобальные переменные. */
@@ -316,8 +281,6 @@ void func_ret(void) {
   ret_value = value;
 }
 
-
-
 /* Интерпритация одного оператора или блока. Когда
  interp_block() возвращает управление после первого
  вызова, в main() встретилась последняя
@@ -408,7 +371,6 @@ void find_eob(void) {
   } while(brace);
 }
 
-
 /* Затолкнуть локальную переменную. */
 void local_arr_push(struct array_type *arr) {
   if(larrtos > NUM_LOCAL_ARRS) {
@@ -438,7 +400,7 @@ struct array_type *get_arr(char *name) {
 /* Вызов функции. */
 void call(void) {
   char *loc, *temp;
-  int lvartemp, larrtemp;
+  int lvartemp;//, larrtemp;
 
   loc = find_func(token); /* найти точку входа функции */
   if(loc == NULL) {
@@ -465,8 +427,6 @@ void call(void) {
     lvartos = func_pop(); /* восстановление стека локальных переменных */
   }
 }
-
-
 
 /* Заталкивание аргументов функций в стек
  локальных переменных. */
@@ -519,8 +479,6 @@ void get_args(void) {
     local_var_push(i);
   }
 }
-
-
 
 /* Получение параметров функции. */
 void get_params(void) {
@@ -598,7 +556,6 @@ void local_var_push(struct var_type i) {
   if(lvartos > NUM_LOCAL_VARS) {
     sntx_err(TOO_MANY_LVARS);
   }
-
   local_var_stack[lvartos] = i;
   lvartos++;
 }
@@ -692,7 +649,6 @@ void decl_local_array(void) {
   local_arr_stack[larrtos] = newLocalArr;
   larrtos++;
 }
-
 
 void decl_global_array(void) {
   get_token(); // type
@@ -829,14 +785,13 @@ int arr_exists(char *name) {
   return 0;
 }
 
-void free_arr() {
+void free_arr(void) {
   register int i;
   for(i=0; i < NUM_GLOBAL_ARRAYS; i++) {
     free(global_arrays[i].int_arr);
     free(global_arrays[i].char_arr);
   }
 }
-
 
 /* Получение значения переменной. */
 int find_var(char *s) {
@@ -970,6 +925,5 @@ void exec_for(void) {
     prog = temp;  /* возврат в начало цикла */
   }
 }
-
 
 // }}

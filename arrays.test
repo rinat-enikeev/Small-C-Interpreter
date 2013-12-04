@@ -7,9 +7,9 @@ int main() {
 
     int local_array[8];
     local_array[0] = 777;
-    print(local_array[0]);
+    print(local_array[0]==777);
     foo(local_array, 555);
-    print(local_array[0]);
+    print(local_array[0]==555);
     return 0;
 }
 

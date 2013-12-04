@@ -4,14 +4,11 @@
 #include "externVars.h"
 #include "commonEnums.h"
 #include "restrictions.h"
-#include <string.h>
-#include <stdlib.h>
+#include "analyzer.h"
+#include "libc.h"
+#include "interpreter.h"
 #include <stdio.h>
-
-void prescan(void);
-int load_program(char *p, char *fname);
-char *find_func(char *name);
-void call(void);
-void free_arr();
+#include <stdlib.h>
+#include <string.h>
 
 #endif //COMMON_H

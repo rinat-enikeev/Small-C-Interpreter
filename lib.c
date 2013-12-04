@@ -1,29 +1,9 @@
-#ifndef EXTERN_VAR_DECL_H
 #include "externVars.h"
-#endif
-
-#ifndef COMMON_ENUMS_DECL_H
 #include "commonEnums.h"
-#endif
-
+#include "analyzer.h"
+#include "libc.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-// {{ core functions
-int print(char *s); /* вывод строки на экран */
-//int print(int i);   /* вывод целого числа на экран */
-int getnum(void);   /* read int from keyboard */
-int call_getche();  /* read char from keyboard */
-int call_put_char();
-int call_put_string(void);
-// }}
-
-// {{ analyzer.cpp functions
-int get_token(void);
-void putback(void);
-void sntx_err(int error);
-void eval_exp(int *value);
-// }}
 
 /* Вывод символа на экран. */
 int call_put_char() {

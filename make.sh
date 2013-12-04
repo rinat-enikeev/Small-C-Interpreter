@@ -1,8 +1,9 @@
-gcc -o testAnalyzer testAnalyzer.c analyzer.c lib.c interpreter.c
+#! /bin/sh
+gcc -Wall -o testAnalyzer testAnalyzer.c analyzer.c lib.c interpreter.c
 ./testAnalyzer
-gcc -o testPrescan testPrescan.c analyzer.c lib.c interpreter.c
+gcc -Wall -o testPrescan testPrescan.c analyzer.c lib.c interpreter.c
 ./testPrescan
-gcc -o testArrays testArrays.c analyzer.c lib.c interpreter.c
+gcc -Wall -o testArrays testArrays.c analyzer.c lib.c interpreter.c
 ./testArrays
-gcc -o smallC smallC.c analyzer.c lib.c interpreter.c
+gcc -Wall -o smallC smallC.c analyzer.c lib.c interpreter.c
 ./smallC

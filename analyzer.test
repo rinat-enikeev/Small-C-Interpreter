@@ -1,7 +1,6 @@
-int i, j; 
+int i, j;
 char ch;
 
-
 int main() {
-    
+
 }

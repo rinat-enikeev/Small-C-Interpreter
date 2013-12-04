@@ -165,7 +165,7 @@ void eval_exp2(int *value) {
 /* Умножение или деление двух множителей. */
 void eval_exp3(int *value) {
   register char  op;
-  int partial_value, t;
+  int partial_value;// t;
 
   eval_exp4(value);
   while((op = *token) == '*' || op == '/' || op == '%') {
@@ -182,8 +182,9 @@ void eval_exp3(int *value) {
       *value = (*value) / partial_value;
       break;
     case '%':
-      t = (*value) / partial_value;
-      *value = *value-(t * partial_value);
+      //t = (*value) / partial_value;
+      //*value = *value-(t * partial_value);
+      *value = (*value) % partial_value;
       break;
     }
   }

@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   strcpy(token, "main");
   call(); /* начало интерпритации main() */
   // free memory from global arrays
-  free_arr();
+  //free_arr();
   testcase();
   return 0;
 }

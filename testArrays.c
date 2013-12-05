@@ -1,18 +1,6 @@
 #include "common.h"
 #include <assert.h>
 
-void testcase_global_vars(void);
-
-// {{ from memory.cpp
-int load_program(char *p, char *fname);
-int get_token(void);
-void prescan(void);
-char *find_func(char *name);
-void call(void);
-void free_arr();
-/* }} */
-// }}
-
 int main(void) {
   if((p_buf = (char *) malloc(PROG_SIZE))==NULL) {
     printf("Can not allocate memory");

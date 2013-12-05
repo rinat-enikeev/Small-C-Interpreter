@@ -1,7 +1,10 @@
 #! /bin/sh
-echo "test_if"
-if [ $(./test_if 1>/dev/null 2>/dev/null) ]; then
-  echo "SUCCESSFUL"
-else
-  echo "FAILED"
-fi
+tests="test_if test_loops test_vars test_funcs"
+
+for test in $tests; do
+  if $(./$test 1>/dev/null); then
+    echo $test	"SUCCESSFUL"
+  else
+    echo $test	"FAILED"
+  fi
+done

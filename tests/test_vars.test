@@ -1,0 +1,23 @@
+int a,b;
+char c,d;
+
+
+int main() {
+  int a;
+  char c;
+  func();
+  a=1;
+  b=2;
+  c=3;
+  d=4;
+}
+/*a==5
+  b==2
+  c==6
+  d==4
+*/
+
+int func() {
+  a=5;
+  c=6;
+}

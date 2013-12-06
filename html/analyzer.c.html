@@ -1,0 +1,583 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>/home/aynur/develop/work/Small-C-Interpreter/analyzer.c</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 1.23.1" />
+	<meta name="date" content="2013-12-06T23:51:33+0600" />
+	<style type="text/css">
+	body
+	{
+		font-family: Ubuntu Mono, monospace;
+		font-size: 16pt;
+	}
+	.style_0
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_1
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_2
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_4
+	{
+		color: #007f00;
+		background-color: #ffffff;
+	}
+	.style_5
+	{
+		color: #00007f;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+	.style_6
+	{
+		color: #ff8000;
+		background-color: #ffffff;
+	}
+	.style_7
+	{
+		color: #ff8000;
+		background-color: #ffffff;
+	}
+	.style_9
+	{
+		color: #007f7f;
+		background-color: #ffffff;
+	}
+	.style_10
+	{
+		color: #301010;
+		background-color: #ffffff;
+	}
+	.style_11
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_19
+	{
+		color: #0000d0;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+
+	</style>
+</head>
+
+<body>
+<p>
+<span class="style_1">/*&nbsp;Рекурсивный&nbsp;нисходящий&nbsp;синтаксический&nbsp;анализатор</span><br />
+&nbsp;&nbsp;&nbsp;<span class="style_1">целочисленных&nbsp;выражений,&nbsp;содержащих&nbsp;переменные</span><br />
+&nbsp;&nbsp;&nbsp;<span class="style_1">и&nbsp;вызовы&nbsp;функций.</span><br />
+<span class="style_1">*/</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">"externVars.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">"commonEnums.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">"restrictions.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">"analyzer.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">"interpreter.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">"libc.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">&lt;stdio.h&gt;</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">&lt;stdlib.h&gt;</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">&lt;string.h&gt;</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">&lt;ctype.h&gt;</span><br />
+<br />
+<span class="style_5">struct&nbsp;</span><span class="style_19">intern_func_type&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;<span class="style_5">const&nbsp;char&nbsp;</span><span class="style_10">*</span><span class="style_11">f_name</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;имя&nbsp;функции&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_10">(*</span><span class="style_11">p</span><span class="style_10">)();&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;указатель&nbsp;на&nbsp;функцию&nbsp;*/</span><br />
+<span class="style_10">}&nbsp;</span><span class="style_11">intern_func</span><span class="style_10">[]&nbsp;=&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"print"</span><span class="style_10">,&nbsp;</span><span class="style_11">print</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"getnum"</span><span class="style_10">,&nbsp;</span><span class="style_11">getnum</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"getche"</span><span class="style_10">,&nbsp;</span><span class="style_11">call_getche</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"putch"</span><span class="style_10">,&nbsp;</span><span class="style_11">call_put_char</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"puts"</span><span class="style_10">,&nbsp;</span><span class="style_11">call_put_string</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">""</span><span class="style_10">,&nbsp;</span><span class="style_4">0</span><span class="style_10">}&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;этот&nbsp;список&nbsp;заканчивается&nbsp;нулем&nbsp;*/</span><br />
+<span class="style_10">};</span><br />
+<span class="style_1">/*&nbsp;Точка&nbsp;входа&nbsp;для&nbsp;вычисления&nbsp;выражение&nbsp;в&nbsp;синтаксическом&nbsp;дереве&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">eval_exp</span><span class="style_10">(</span><span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">value</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!*</span><span class="style_11">token</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">NO_EXP</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">';'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;пустое&nbsp;выражение&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">eval_exp0</span><span class="style_10">(</span><span class="style_11">value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">putback</span><span class="style_10">();&nbsp;</span><span class="style_1">/*&nbsp;возврат&nbsp;последней&nbsp;лексемы&nbsp;во&nbsp;входной&nbsp;поток&nbsp;*/</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Обработка&nbsp;выражения&nbsp;в&nbsp;присваивании&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">eval_exp0</span><span class="style_10">(</span><span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">value</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_11">temp</span><span class="style_10">[</span><span class="style_11">ID_LEN</span><span class="style_10">];&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;содержит&nbsp;имя&nbsp;переменной,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">которой&nbsp;присваивается&nbsp;значение&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">temp_tok</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">IDENTIFIER</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">is_var</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;если&nbsp;эта&nbsp;переменная,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">посмотреть,&nbsp;присваивается&nbsp;ли&nbsp;ей&nbsp;значение&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">is_arr</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">SYNTAX</span><span class="style_10">);&nbsp;</span><span class="style_2">//&nbsp;todo:&nbsp;make&nbsp;message:&nbsp;redefinition&nbsp;of&nbsp;array&nbsp;is&nbsp;illegal</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">temp</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp_tok&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">token_type</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'='</span><span class="style_10">)&nbsp;{&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;это&nbsp;присваивание&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">eval_exp0</span><span class="style_10">(</span><span class="style_11">value</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;вычислить&nbsp;присваемое&nbsp;значение&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">assign_var</span><span class="style_10">(</span><span class="style_11">temp</span><span class="style_10">,&nbsp;*</span><span class="style_11">value</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;присвоить&nbsp;значение&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{&nbsp;</span><span class="style_1">/*&nbsp;не&nbsp;присваивание&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">putback</span><span class="style_10">();&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;востановление&nbsp;лексемы&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">,&nbsp;</span><span class="style_11">temp</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">temp_tok</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(</span><span class="style_11">is_arr</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">temp</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp_tok&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">token_type</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'['</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">eval_exp0</span><span class="style_10">(</span><span class="style_11">value</span><span class="style_10">);&nbsp;</span><span class="style_2">//&nbsp;вычисление&nbsp;выражения&nbsp;в&nbsp;[]&nbsp;скобках</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">arr_index&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;'='&nbsp;or&nbsp;';'</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'='</span><span class="style_10">)&nbsp;{&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;это&nbsp;присваивание&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">eval_exp0</span><span class="style_10">(</span><span class="style_11">value</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;вычислить&nbsp;присваемое&nbsp;значение&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">assign_arr_element</span><span class="style_10">(</span><span class="style_11">temp</span><span class="style_10">,&nbsp;</span><span class="style_11">arr_index</span><span class="style_10">,&nbsp;*</span><span class="style_11">value</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;присвоить&nbsp;значение&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{&nbsp;</span><span class="style_1">/*&nbsp;не&nbsp;присваивание&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">putback</span><span class="style_10">();&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;востановление&nbsp;лексемы&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">,&nbsp;</span><span class="style_11">temp</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">temp_tok</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">ASSIGN_ARRAY_ILLEGAL</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">eval_exp1</span><span class="style_10">(</span><span class="style_11">value</span><span class="style_10">);</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Обработка&nbsp;операций&nbsp;сравнения.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">eval_exp1</span><span class="style_10">(</span><span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">value</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;char&nbsp;</span><span class="style_11">op</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_11">relops</span><span class="style_10">[</span><span class="style_4">7</span><span class="style_10">]&nbsp;=&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">LT</span><span class="style_10">,&nbsp;</span><span class="style_11">LE</span><span class="style_10">,&nbsp;</span><span class="style_11">GT</span><span class="style_10">,&nbsp;</span><span class="style_11">GE</span><span class="style_10">,&nbsp;</span><span class="style_11">EQ</span><span class="style_10">,&nbsp;</span><span class="style_11">NE</span><span class="style_10">,&nbsp;</span><span class="style_4">0</span><br />
+&nbsp;&nbsp;<span class="style_10">};</span><br />
+&nbsp;&nbsp;<span class="style_11">eval_exp2</span><span class="style_10">(</span><span class="style_11">value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">op&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">token</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">strchr</span><span class="style_10">(</span><span class="style_11">relops</span><span class="style_10">,&nbsp;</span><span class="style_11">op</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">eval_exp2</span><span class="style_10">(&amp;</span><span class="style_11">partial_value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">switch</span><span class="style_10">(</span><span class="style_11">op</span><span class="style_10">)&nbsp;{&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;вычисление&nbsp;результата&nbsp;операции&nbsp;сравнения&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">LT</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">value&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">LE</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">value&nbsp;</span><span class="style_10">&lt;=&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">GT</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">value&nbsp;</span><span class="style_10">&gt;&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">GE</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">value&nbsp;</span><span class="style_10">&gt;=&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">EQ</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">value&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">NE</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">value&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;&nbsp;Суммирование&nbsp;или&nbsp;вычисление&nbsp;двух&nbsp;термов.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">eval_exp2</span><span class="style_10">(</span><span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">value</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;char&nbsp;&nbsp;</span><span class="style_11">op</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">eval_exp3</span><span class="style_10">(</span><span class="style_11">value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">((</span><span class="style_11">op&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">token</span><span class="style_10">)&nbsp;==&nbsp;</span><span class="style_7">'+'&nbsp;</span><span class="style_10">||&nbsp;</span><span class="style_11">op&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'-'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">eval_exp3</span><span class="style_10">(&amp;</span><span class="style_11">partial_value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">switch</span><span class="style_10">(</span><span class="style_11">op</span><span class="style_10">)&nbsp;{&nbsp;</span><span class="style_1">/*&nbsp;суммирование&nbsp;или&nbsp;вычитание&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_7">'-'</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">value&nbsp;</span><span class="style_10">-&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_7">'+'</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">value&nbsp;</span><span class="style_10">+&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Умножение&nbsp;или&nbsp;деление&nbsp;двух&nbsp;множителей.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">eval_exp3</span><span class="style_10">(</span><span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">value</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;char&nbsp;&nbsp;</span><span class="style_11">op</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><span class="style_2">//&nbsp;t;</span><br />
+&nbsp;&nbsp;<span class="style_11">eval_exp4</span><span class="style_10">(</span><span class="style_11">value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">((</span><span class="style_11">op&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">token</span><span class="style_10">)&nbsp;==&nbsp;</span><span class="style_7">'*'&nbsp;</span><span class="style_10">||&nbsp;</span><span class="style_11">op&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'/'&nbsp;</span><span class="style_10">||&nbsp;</span><span class="style_11">op&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'%'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">eval_exp4</span><span class="style_10">(&amp;</span><span class="style_11">partial_value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">switch</span><span class="style_10">(</span><span class="style_11">op</span><span class="style_10">)&nbsp;{&nbsp;</span><span class="style_1">/*&nbsp;умножение,&nbsp;деление&nbsp;или&nbsp;деление&nbsp;целых&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_7">'*'</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">value&nbsp;</span><span class="style_10">*&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_7">'/'</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">partial_value&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_4">0</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">DIV_BY_ZERO</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;(*</span><span class="style_11">value</span><span class="style_10">)&nbsp;/&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_7">'%'</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;(*</span><span class="style_11">value</span><span class="style_10">)&nbsp;%&nbsp;</span><span class="style_11">partial_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Унарный&nbsp;+&nbsp;или&nbsp;-.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">eval_exp4</span><span class="style_10">(</span><span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">value</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;char&nbsp;&nbsp;</span><span class="style_11">op</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">op&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'+'&nbsp;</span><span class="style_10">||&nbsp;*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'-'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">op&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">token</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">eval_exp5</span><span class="style_10">(</span><span class="style_11">value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">op</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">op&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'-'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;-(*</span><span class="style_11">value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Обработка&nbsp;выражения&nbsp;в&nbsp;скобках.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">eval_exp5</span><span class="style_10">(</span><span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">value</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'('</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">eval_exp0</span><span class="style_10">(</span><span class="style_11">value</span><span class="style_10">);&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;вычисление&nbsp;подвыражения&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">')'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">PAREN_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">atom</span><span class="style_10">(</span><span class="style_11">value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Получение&nbsp;значения&nbsp;числа,&nbsp;переменной&nbsp;или&nbsp;функции.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">atom</span><span class="style_10">(</span><span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">value</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">switch</span><span class="style_10">(</span><span class="style_11">token_type</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">IDENTIFIER</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">i&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">internal_func</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">!=&nbsp;-</span><span class="style_4">1</span><span class="style_10">)&nbsp;{&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;вызов&nbsp;функции&nbsp;из&nbsp;"стандартной&nbsp;билиотеки"&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;(*</span><span class="style_11">intern_func</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">p</span><span class="style_10">)();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(</span><span class="style_11">find_func</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;вызов&nbsp;функции,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">определенной&nbsp;пользователем&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">call</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">ret_value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(</span><span class="style_11">arr_exists</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">find_arr_element</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">,&nbsp;*</span><span class="style_11">value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">find_var</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">);&nbsp;</span><span class="style_1">/*&nbsp;получение&nbsp;значения&nbsp;переменной&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">NUMBER</span><span class="style_10">:&nbsp;</span><span class="style_1">/*&nbsp;числовая&nbsp;константа&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">atoi</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">DELIMITER</span><span class="style_10">:&nbsp;</span><span class="style_1">/*&nbsp;это&nbsp;символьная&nbsp;константа?&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'\''</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">prog</span><span class="style_10">!=</span><span class="style_7">'\''</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">QUOTE_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token</span><span class="style_10">==</span><span class="style_7">')'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;обработка&nbsp;пустого&nbsp;выражения&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">SYNTAX</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;синтаксическая&nbsp;ошибка&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">default</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">SYNTAX</span><span class="style_10">);&nbsp;</span><span class="style_1">/*&nbsp;синтаксическая&nbsp;ошибка&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Возвращает&nbsp;идекс&nbsp;функции&nbsp;во&nbsp;внутренней</span><br />
+&nbsp;<span class="style_1">библиотеке,&nbsp;или&nbsp;-1,&nbsp;если&nbsp;не&nbsp;найдена.</span><br />
+&nbsp;<span class="style_1">*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">internal_func</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">s</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">intern_func</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">f_name</span><span class="style_10">[</span><span class="style_4">0</span><span class="style_10">];&nbsp;</span><span class="style_11">i</span><span class="style_10">++)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">intern_func</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">f_name</span><span class="style_10">,&nbsp;</span><span class="style_11">s</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Возврат&nbsp;лексемы&nbsp;во&nbsp;входной&nbsp;поток.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">putback</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">t</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">t&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">token</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(;&nbsp;*</span><span class="style_11">t</span><span class="style_10">;&nbsp;</span><span class="style_11">t</span><span class="style_10">++)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">--;</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Считывание&nbsp;лексемы&nbsp;из&nbsp;входного&nbsp;потока.&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">get_token</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;char&nbsp;</span><span class="style_10">*</span><span class="style_11">temp</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">tok&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">token</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;пропуск&nbsp;пробелов,&nbsp;символов&nbsp;табуляции&nbsp;и&nbsp;пустой&nbsp;строки&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(</span><span class="style_11">iswhite</span><span class="style_10">(*</span><span class="style_11">prog</span><span class="style_10">)&nbsp;&amp;&amp;&nbsp;*</span><span class="style_11">prog</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">++</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(*</span><span class="style_11">prog&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'\r'&nbsp;</span><span class="style_10">||&nbsp;*</span><span class="style_11">prog&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'\n'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">++</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_2">//&nbsp;COMPILER_SPECIFIC</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(</span><span class="style_11">iswhite</span><span class="style_10">(*</span><span class="style_11">prog</span><span class="style_10">)&nbsp;&amp;&amp;&nbsp;*</span><span class="style_11">prog</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">++</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;конец&nbsp;файла&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">prog&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">token&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tok&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">FINISHED</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">DELIMITER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;блок&nbsp;кода&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">strchr</span><span class="style_10">(</span><span class="style_6">"{}"</span><span class="style_10">,&nbsp;*</span><span class="style_11">prog</span><span class="style_10">))&nbsp;{&nbsp;</span><span class="style_1">/*&nbsp;ограничение&nbsp;блока&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">BLOCK</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;массив&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">strchr</span><span class="style_10">(</span><span class="style_6">"[]"</span><span class="style_10">,&nbsp;*</span><span class="style_11">prog</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">ARRAY</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;комментарий&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">prog&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'/'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*(</span><span class="style_11">prog</span><span class="style_10">+</span><span class="style_4">1</span><span class="style_10">)&nbsp;==&nbsp;</span><span class="style_7">'*'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">+=&nbsp;</span><span class="style_4">2</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">do&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(*</span><span class="style_11">prog&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">'*'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">while</span><span class="style_10">(*</span><span class="style_11">prog&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">'/'</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;оператор&nbsp;сравнения&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">strchr</span><span class="style_10">(</span><span class="style_6">"!&lt;&gt;="</span><span class="style_10">,&nbsp;*</span><span class="style_11">prog</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">switch</span><span class="style_10">(*</span><span class="style_11">prog</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_7">'='</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*(</span><span class="style_11">prog</span><span class="style_10">+</span><span class="style_4">1</span><span class="style_10">)&nbsp;==&nbsp;</span><span class="style_7">'='</span><span class="style_10">)&nbsp;{&nbsp;</span><span class="style_2">//&nbsp;==</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">EQ</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">EQ</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_7">'!'</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*(</span><span class="style_11">prog</span><span class="style_10">+</span><span class="style_4">1</span><span class="style_10">)&nbsp;==&nbsp;</span><span class="style_7">'='</span><span class="style_10">)&nbsp;{&nbsp;</span><span class="style_2">//&nbsp;!=</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">NE</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">NE</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_7">'&lt;'</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*(</span><span class="style_11">prog</span><span class="style_10">+</span><span class="style_4">1</span><span class="style_10">)&nbsp;==&nbsp;</span><span class="style_7">'='</span><span class="style_10">)&nbsp;{&nbsp;</span><span class="style_2">//&nbsp;&lt;=</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">LE</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">LE</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;&lt;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">LT</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_7">'&gt;'</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*(</span><span class="style_11">prog</span><span class="style_10">+</span><span class="style_4">1</span><span class="style_10">)&nbsp;==&nbsp;</span><span class="style_7">'='</span><span class="style_10">)&nbsp;{&nbsp;</span><span class="style_2">//&nbsp;&gt;=</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">GE</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">GE</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;&gt;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">GT</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">DELIMITER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;разделитель&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">strchr</span><span class="style_10">(</span><span class="style_6">"+-*^/%=;(),'"</span><span class="style_10">,&nbsp;*</span><span class="style_11">prog</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;*</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;&nbsp;</span><span class="style_1">/*&nbsp;продвижение&nbsp;на&nbsp;следующую&nbsp;позицию&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">DELIMITER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;строка&nbsp;в&nbsp;кавычках&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">prog</span><span class="style_10">==</span><span class="style_7">'"'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(*</span><span class="style_11">prog&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">'"'&nbsp;</span><span class="style_10">&amp;&amp;&nbsp;*</span><span class="style_11">prog&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">'\r'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp</span><span class="style_10">++&nbsp;=&nbsp;*</span><span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">prog&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'\r'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">SYNTAX</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">STRING</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;число&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">isdigit</span><span class="style_10">(*</span><span class="style_11">prog</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(!</span><span class="style_11">isdelim</span><span class="style_10">(*</span><span class="style_11">prog</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp</span><span class="style_10">++&nbsp;=&nbsp;*</span><span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">NUMBER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;переменная&nbsp;или&nbsp;оператор&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">isalpha</span><span class="style_10">(*</span><span class="style_11">prog</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(!</span><span class="style_11">isdelim</span><span class="style_10">(*</span><span class="style_11">prog</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp</span><span class="style_10">++&nbsp;=&nbsp;*</span><span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">TEMP</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;ключевое&nbsp;слово&nbsp;или&nbsp;имя&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">token_type</span><span class="style_10">==</span><span class="style_11">TEMP</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tok&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">look_up</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">);&nbsp;</span><span class="style_1">/*&nbsp;преобразовать&nbsp;во&nbsp;внутренее&nbsp;представление&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">tok</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">KEYWORD</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;это&nbsp;зарезервированное&nbsp;слово&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">IDENTIFIER</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_11">token_type</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Вывод&nbsp;сообщения&nbsp;об&nbsp;ошибке.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_5">int&nbsp;</span><span class="style_11">error</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">p</span><span class="style_10">,&nbsp;*</span><span class="style_11">temp</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">linecount&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">static&nbsp;const&nbsp;char&nbsp;</span><span class="style_10">*</span><span class="style_11">e</span><span class="style_10">[]=&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"синтаксическая&nbsp;ошибка"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"несбалансированные&nbsp;скобки"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"выражение&nbsp;отсутствует"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"ожидается&nbsp;знак&nbsp;равенства"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"не&nbsp;переменная"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"ошибка&nbsp;в&nbsp;параметре"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"ожидается&nbsp;точка&nbsp;с&nbsp;запятой"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"несбалансированные&nbsp;фигурные&nbsp;скобки"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"функция&nbsp;не&nbsp;определена"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"ожидается&nbsp;спецификатор&nbsp;типа"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"слишком&nbsp;много&nbsp;вложенных&nbsp;вызовов&nbsp;функций"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"оператор&nbsp;return&nbsp;вне&nbsp;функции"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"ожидаются&nbsp;скобки"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"ожидается&nbsp;while"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"ожидается&nbsp;закрывающаяся&nbsp;кавычка"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"не&nbsp;строка"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"слишком&nbsp;много&nbsp;локальных&nbsp;переменных"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"деление&nbsp;на&nbsp;нуль"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"присваивание&nbsp;значения&nbsp;массиву&nbsp;некорректно"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"индекс&nbsp;выходит&nbsp;за&nbsp;границы&nbsp;массива"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"не&nbsp;массив"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"ожидается&nbsp;скобка&nbsp;массива&nbsp;[&nbsp;или&nbsp;]"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"ожидается&nbsp;число"</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_6">"слишком&nbsp;много&nbsp;локальных&nbsp;массивов"</span><br />
+&nbsp;&nbsp;<span class="style_10">};</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"\n%s"</span><span class="style_10">,&nbsp;</span><span class="style_11">e</span><span class="style_10">[</span><span class="style_11">error</span><span class="style_10">]);</span><br />
+&nbsp;&nbsp;<span class="style_11">p&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">p_buf</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(</span><span class="style_11">p&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_11">prog</span><span class="style_10">)&nbsp;{&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;поиск&nbsp;номера&nbsp;строки&nbsp;с&nbsp;ошибкой&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">p</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">p&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'\r'&nbsp;</span><span class="style_10">||&nbsp;*</span><span class="style_11">p&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'\n'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">linecount</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"&nbsp;in&nbsp;line&nbsp;%d\n"</span><span class="style_10">,&nbsp;</span><span class="style_11">linecount</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">p</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_4">20&nbsp;</span><span class="style_10">&amp;&amp;&nbsp;</span><span class="style_11">p&nbsp;</span><span class="style_10">&gt;&nbsp;</span><span class="style_11">p_buf&nbsp;</span><span class="style_10">&amp;&amp;&nbsp;*</span><span class="style_11">p&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">'\n'</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++,&nbsp;</span><span class="style_11">p</span><span class="style_10">--);</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_4">30&nbsp;</span><span class="style_10">&amp;&amp;&nbsp;</span><span class="style_11">p&nbsp;</span><span class="style_10">&lt;=&nbsp;</span><span class="style_11">temp</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++,&nbsp;</span><span class="style_11">p</span><span class="style_10">++)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"%c"</span><span class="style_10">,&nbsp;*</span><span class="style_11">p</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">longjmp</span><span class="style_10">(</span><span class="style_11">e_buf</span><span class="style_10">,&nbsp;</span><span class="style_4">1</span><span class="style_10">);&nbsp;</span><span class="style_1">/*&nbsp;возврат&nbsp;в&nbsp;безопасную&nbsp;точку&nbsp;*/</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Возвращает&nbsp;true&nbsp;(ИСТИНА),&nbsp;если&nbsp;с&nbsp;-&nbsp;разделитель.&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">isdelim</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_11">c</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">strchr</span><span class="style_10">(</span><span class="style_6">"&nbsp;!;,+-&lt;&gt;'/*%^=()[]"</span><span class="style_10">,&nbsp;</span><span class="style_11">c</span><span class="style_10">)&nbsp;||&nbsp;</span><span class="style_11">c&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_4">9&nbsp;</span><span class="style_10">||</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">c&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'\r'&nbsp;</span><span class="style_10">||&nbsp;</span><span class="style_11">c&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_4">0</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Возвращает&nbsp;1,&nbsp;если&nbsp;с&nbsp;-&nbsp;пробел&nbsp;или&nbsp;табуляция.&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">iswhite</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_11">c</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">c&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'&nbsp;'&nbsp;</span><span class="style_10">||&nbsp;</span><span class="style_11">c&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'\t'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Поиск&nbsp;внутреннего&nbsp;представления&nbsp;лексемы</span><br />
+&nbsp;&nbsp;&nbsp;<span class="style_1">в&nbsp;таблице&nbsp;лексем.</span><br />
+<span class="style_1">*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">look_up</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">s</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">p</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;преобразование&nbsp;в&nbsp;нижний&nbsp;регистр&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_11">p&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">s</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(*</span><span class="style_11">p</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">p&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tolower</span><span class="style_10">(*</span><span class="style_11">p</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">p</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;есть&nbsp;ли&nbsp;лексемы&nbsp;в&nbsp;таблице?&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;*</span><span class="style_11">table</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">command</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">table</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">command</span><span class="style_10">,&nbsp;</span><span class="style_11">s</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_11">table</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">tok</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;незнакомый&nbsp;оператор&nbsp;*/</span><br />
+<span class="style_10">}</span><br />
+
+</p>
+</body>
+</html>

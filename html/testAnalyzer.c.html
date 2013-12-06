@@ -1,0 +1,133 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>/home/aynur/develop/work/Small-C-Interpreter/testAnalyzer.c</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 1.23.1" />
+	<meta name="date" content="2013-12-07T00:07:08+0600" />
+	<style type="text/css">
+	body
+	{
+		font-family: Ubuntu Mono, monospace;
+		font-size: 16pt;
+	}
+	.style_0
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_2
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_4
+	{
+		color: #007f00;
+		background-color: #ffffff;
+	}
+	.style_5
+	{
+		color: #00007f;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+	.style_6
+	{
+		color: #ff8000;
+		background-color: #ffffff;
+	}
+	.style_9
+	{
+		color: #007f7f;
+		background-color: #ffffff;
+	}
+	.style_10
+	{
+		color: #301010;
+		background-color: #ffffff;
+	}
+	.style_11
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+
+	</style>
+</head>
+
+<body>
+<p>
+<span class="style_9">#include&nbsp;</span><span class="style_6">"common.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">&lt;assert.h&gt;</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">testcase_global_vars</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">);</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">main</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">((</span><span class="style_11">p_buf&nbsp;</span><span class="style_10">=&nbsp;(</span><span class="style_5">char&nbsp;</span><span class="style_10">*)&nbsp;</span><span class="style_11">malloc</span><span class="style_10">(</span><span class="style_11">PROG_SIZE</span><span class="style_10">))==</span><span class="style_5">NULL</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"Выделить&nbsp;память&nbsp;не&nbsp;удалось"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exit</span><span class="style_10">(</span><span class="style_4">1</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">source&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_6">"analyzer.test"</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">load_program</span><span class="style_10">(</span><span class="style_11">p_buf</span><span class="style_10">,&nbsp;</span><span class="style_11">source</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exit</span><span class="style_10">(</span><span class="style_4">1</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">p_buf</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">testcase_global_vars</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">testcase_global_vars</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"Test&nbsp;input&nbsp;source&nbsp;is:&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"________________________________________&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_11">p_buf</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"________________________________________&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">p_buf</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;"int"</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">tok&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">INT</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">KEYWORD</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"1&nbsp;token&nbsp;is&nbsp;INT,&nbsp;type&nbsp;is&nbsp;KEYWORD:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;"i"</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">IDENTIFIER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"2&nbsp;token&nbsp;type&nbsp;is&nbsp;IDENTIFIER:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;","</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">DELIMITER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"3&nbsp;token&nbsp;type&nbsp;is&nbsp;DELIMITER:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;"j"</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">IDENTIFIER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"4&nbsp;token&nbsp;type&nbsp;is&nbsp;IDENTIFIER:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;";"</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">DELIMITER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"5&nbsp;token&nbsp;type&nbsp;is&nbsp;DELIMITER:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;"char"</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">tok&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">CHAR</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">KEYWORD</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"6&nbsp;token&nbsp;is&nbsp;CHAR,&nbsp;type&nbsp;is&nbsp;KEYWORD:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;"ch"</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">IDENTIFIER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"7&nbsp;token&nbsp;type&nbsp;is&nbsp;IDENTIFIER:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;";"</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">DELIMITER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"8&nbsp;token&nbsp;type&nbsp;is&nbsp;DELIMITER:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;int</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">KEYWORD</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"9&nbsp;token&nbsp;type&nbsp;is&nbsp;KEYWORD:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;main</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">IDENTIFIER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"10&nbsp;token&nbsp;type&nbsp;is&nbsp;IDENTIFIER:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;(</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">DELIMITER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"11&nbsp;token&nbsp;type&nbsp;is&nbsp;DELIMITER:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;)</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">DELIMITER</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"12&nbsp;token&nbsp;type&nbsp;is&nbsp;DELIMITER:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">BLOCK</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"13&nbsp;token&nbsp;type&nbsp;is&nbsp;BLOCK:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">BLOCK</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"14&nbsp;token&nbsp;type&nbsp;is&nbsp;BLOCK:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+<span class="style_10">}</span><br />
+
+</p>
+</body>
+</html>

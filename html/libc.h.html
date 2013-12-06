@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>/home/aynur/develop/work/Small-C-Interpreter/libc.h</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 1.23.1" />
+	<meta name="date" content="2013-12-07T00:16:47+0600" />
+	<style type="text/css">
+	body
+	{
+		font-family: Ubuntu Mono, monospace;
+		font-size: 16pt;
+	}
+	.style_0
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_1
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_2
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_5
+	{
+		color: #00007f;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+	.style_9
+	{
+		color: #007f7f;
+		background-color: #ffffff;
+	}
+	.style_10
+	{
+		color: #301010;
+		background-color: #ffffff;
+	}
+	.style_11
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+
+	</style>
+</head>
+
+<body>
+<p>
+<span class="style_9">#ifndef&nbsp;</span><span class="style_11">LIBC_H</span><br />
+<span class="style_9">#define&nbsp;</span><span class="style_11">LIBC_H</span><br />
+<span class="style_1">/*&nbsp;Функции&nbsp;и&nbsp;переменные&nbsp;в&nbsp;библиотеке&nbsp;для&nbsp;smallC&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">print</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">s</span><span class="style_10">);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;вывод&nbsp;строки&nbsp;на&nbsp;экран&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">getnum</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;Считывание&nbsp;целого&nbsp;числа&nbsp;с&nbsp;клавиатуры.&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">call_getche</span><span class="style_10">();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;Считывание&nbsp;символа&nbsp;с&nbsp;консоли.&nbsp;Если&nbsp;компилятор</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">не&nbsp;поддерживает&nbsp;_getche(),&nbsp;то&nbsp;следует</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">использвать&nbsp;getchar()&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">call_put_char</span><span class="style_10">();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;Вывод&nbsp;символа&nbsp;на&nbsp;экран.&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">call_put_string</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;Вызов&nbsp;функции&nbsp;puts().&nbsp;*/</span><br />
+<span class="style_9">#endif&nbsp;</span><span class="style_2">//LIBC_H</span><br />
+
+</p>
+</body>
+</html>

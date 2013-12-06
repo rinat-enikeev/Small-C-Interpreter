@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>/home/aynur/develop/work/Small-C-Interpreter/commonEnums.h</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 1.23.1" />
+	<meta name="date" content="2013-12-06T23:48:48+0600" />
+	<style type="text/css">
+	body
+	{
+		font-family: Ubuntu Mono, monospace;
+		font-size: 16pt;
+	}
+	.style_0
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_2
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_3
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_4
+	{
+		color: #007f00;
+		background-color: #ffffff;
+	}
+	.style_5
+	{
+		color: #00007f;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+	.style_9
+	{
+		color: #007f7f;
+		background-color: #ffffff;
+	}
+	.style_10
+	{
+		color: #301010;
+		background-color: #ffffff;
+	}
+	.style_11
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_19
+	{
+		color: #0000d0;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+
+	</style>
+</head>
+
+<body>
+<p>
+<span class="style_9">#ifndef&nbsp;</span><span class="style_11">COMMON_ENUMS_DECL_H</span><br />
+<span class="style_9">#define&nbsp;</span><span class="style_11">COMMON_ENUMS_DECL_H</span><br />
+<span class="style_3">/**********************************************************************/</span><br />
+<span class="style_5">enum&nbsp;</span><span class="style_19">tok_types&nbsp;</span><span class="style_10">{</span><span class="style_11">DELIMITER</span><span class="style_10">,&nbsp;&nbsp;</span><span class="style_2">//&nbsp;знаки&nbsp;пунктуации&nbsp;и&nbsp;операторы</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">IDENTIFIER</span><span class="style_10">,&nbsp;</span><span class="style_2">//&nbsp;имена&nbsp;переменных&nbsp;и&nbsp;функций</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">NUMBER</span><span class="style_10">,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;числовая&nbsp;константа</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">KEYWORD</span><span class="style_10">,&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;зарезервированные&nbsp;слова&nbsp;(while&nbsp;f.e.)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">TEMP</span><span class="style_10">,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;вспомогательный&nbsp;тип&nbsp;токена&nbsp;для&nbsp;определения</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_2">//&nbsp;является&nbsp;токен&nbsp;KEYWORD&nbsp;или&nbsp;IDENTIFIER</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">STRING</span><span class="style_10">,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;строка</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">BLOCK</span><span class="style_10">,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;{&nbsp;or&nbsp;}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">ARRAY&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;[&nbsp;or&nbsp;]</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">};</span><br />
+<span class="style_5">enum&nbsp;</span><span class="style_19">tokens&nbsp;</span><span class="style_10">{</span><span class="style_11">ARG</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">CHAR</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">INT</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">IF</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">ELSE</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">FOR</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">DO</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">WHILE</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">RETURN</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">EOL</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">FINISHED</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">END</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">};</span><br />
+<span class="style_5">enum&nbsp;</span><span class="style_19">error_msg&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;<span class="style_11">SYNTAX</span><span class="style_10">,&nbsp;</span><span class="style_11">UNBAL_PARENS</span><span class="style_10">,&nbsp;</span><span class="style_11">NO_EXP</span><span class="style_10">,&nbsp;</span><span class="style_11">EQUALS_EXPECTED</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;<span class="style_11">NOT_VAR</span><span class="style_10">,&nbsp;</span><span class="style_11">PARAM_ERR</span><span class="style_10">,&nbsp;</span><span class="style_11">SEMI_EXPECTED</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;<span class="style_11">UNBAL_BRACES</span><span class="style_10">,&nbsp;</span><span class="style_11">FUNC_UNDEF</span><span class="style_10">,&nbsp;</span><span class="style_11">TYPE_EXPECTED</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;<span class="style_11">NEST_FUNC</span><span class="style_10">,&nbsp;</span><span class="style_11">RET_NOCALL</span><span class="style_10">,&nbsp;</span><span class="style_11">PAREN_EXPECTED</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;<span class="style_11">WHILE_EXPECTED</span><span class="style_10">,&nbsp;</span><span class="style_11">QUOTE_EXPECTED</span><span class="style_10">,&nbsp;</span><span class="style_11">NOT_TEMP</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;<span class="style_11">TOO_MANY_LVARS</span><span class="style_10">,&nbsp;</span><span class="style_11">DIV_BY_ZERO</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;<span class="style_11">ASSIGN_ARRAY_ILLEGAL</span><span class="style_10">,</span><span class="style_11">INDEX_OUT_OF_BOUNDS</span><span class="style_10">,</span><br />
+&nbsp;&nbsp;<span class="style_11">NOT_ARR</span><span class="style_10">,</span><span class="style_11">ARRAY_BRACE_EXPECTED</span><span class="style_10">,&nbsp;</span><span class="style_11">NUM_EXPECTED</span><span class="style_10">,&nbsp;</span><span class="style_11">TOO_MANY_LARRS</span><br />
+<span class="style_10">};</span><br />
+<span class="style_5">enum&nbsp;</span><span class="style_19">double_ops&nbsp;</span><span class="style_10">{</span><span class="style_11">LT</span><span class="style_10">=</span><span class="style_4">1</span><span class="style_10">,</span><span class="style_2">//&nbsp;&lt;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">LE</span><span class="style_10">,&nbsp;&nbsp;</span><span class="style_2">//&nbsp;&lt;=</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">GT</span><span class="style_10">,&nbsp;&nbsp;</span><span class="style_2">//&nbsp;&gt;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">GE</span><span class="style_10">,&nbsp;&nbsp;</span><span class="style_2">//&nbsp;&gt;=</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">EQ</span><span class="style_10">,&nbsp;&nbsp;</span><span class="style_2">//&nbsp;==</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">NE&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;!=</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">};</span><br />
+<span class="style_3">/**********************************************************************/</span><br />
+<span class="style_9">#endif&nbsp;</span><span class="style_2">//&nbsp;COMMON_ENUMS_DECL_H</span><br />
+
+</p>
+</body>
+</html>

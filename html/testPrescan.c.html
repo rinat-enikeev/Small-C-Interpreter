@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>/home/aynur/develop/work/Small-C-Interpreter/testPrescan.c</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 1.23.1" />
+	<meta name="date" content="2013-12-07T00:07:53+0600" />
+	<style type="text/css">
+	body
+	{
+		font-family: Ubuntu Mono, monospace;
+		font-size: 16pt;
+	}
+	.style_0
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_2
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_4
+	{
+		color: #007f00;
+		background-color: #ffffff;
+	}
+	.style_5
+	{
+		color: #00007f;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+	.style_6
+	{
+		color: #ff8000;
+		background-color: #ffffff;
+	}
+	.style_9
+	{
+		color: #007f7f;
+		background-color: #ffffff;
+	}
+	.style_10
+	{
+		color: #301010;
+		background-color: #ffffff;
+	}
+	.style_11
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_19
+	{
+		color: #0000d0;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+
+	</style>
+</head>
+
+<body>
+<p>
+<span class="style_9">#include&nbsp;</span><span class="style_6">"common.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">&lt;assert.h&gt;</span><br />
+<span class="style_5">extern&nbsp;struct&nbsp;</span><span class="style_19">array_type&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_11">arr_name</span><span class="style_10">[</span><span class="style_11">ID_LEN</span><span class="style_10">];</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">arr_type</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">void&nbsp;</span><span class="style_10">*</span><span class="style_11">value</span><span class="style_10">;</span><br />
+<span class="style_10">}&nbsp;</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">NUM_GLOBAL_ARRAYS</span><span class="style_10">];</span><br />
+<span class="style_5">extern&nbsp;int&nbsp;</span><span class="style_11">garr_index</span><span class="style_10">;</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">testcase_arrays</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">);</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">load_program</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">p</span><span class="style_10">,&nbsp;</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">fname</span><span class="style_10">);</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">get_token</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">);</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">prescan</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">);</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">main</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">((</span><span class="style_11">p_buf&nbsp;</span><span class="style_10">=&nbsp;(</span><span class="style_5">char&nbsp;</span><span class="style_10">*)&nbsp;</span><span class="style_11">malloc</span><span class="style_10">(</span><span class="style_11">PROG_SIZE</span><span class="style_10">))==</span><span class="style_5">NULL</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"Can&nbsp;not&nbsp;allocate&nbsp;memory"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exit</span><span class="style_10">(</span><span class="style_4">1</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">source&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_6">"prescan.test"</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">load_program</span><span class="style_10">(</span><span class="style_11">p_buf</span><span class="style_10">,&nbsp;</span><span class="style_11">source</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exit</span><span class="style_10">(</span><span class="style_4">1</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">p_buf</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">testcase_arrays</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">testcase_arrays</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"Test&nbsp;input&nbsp;source&nbsp;is:&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"________________________________________\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_11">p_buf</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"________________________________________\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"entering&nbsp;prescan...\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">prescan</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;int&nbsp;[]&nbsp;array;</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"prescan&nbsp;ended.\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">garr_index&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_4">1</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"global&nbsp;array&nbsp;index&nbsp;==&nbsp;1:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_4">0</span><span class="style_10">].</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">INT</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"global&nbsp;array&nbsp;type&nbsp;is&nbsp;INT:&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">assert</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_4">0</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_6">"array"</span><span class="style_10">));</span><br />
+&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"global&nbsp;array&nbsp;name&nbsp;is&nbsp;'array':&nbsp;OK&nbsp;\n"</span><span class="style_10">);</span><br />
+<span class="style_10">}</span><br />
+
+</p>
+</body>
+</html>

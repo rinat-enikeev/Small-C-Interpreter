@@ -1,0 +1,872 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>/home/aynur/develop/work/Small-C-Interpreter/interpreter.c</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 1.23.1" />
+	<meta name="date" content="2013-12-06T23:55:46+0600" />
+	<style type="text/css">
+	body
+	{
+		font-family: Ubuntu Mono, monospace;
+		font-size: 16pt;
+	}
+	.style_0
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_1
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_2
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_4
+	{
+		color: #007f00;
+		background-color: #ffffff;
+	}
+	.style_5
+	{
+		color: #00007f;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+	.style_6
+	{
+		color: #ff8000;
+		background-color: #ffffff;
+	}
+	.style_7
+	{
+		color: #ff8000;
+		background-color: #ffffff;
+	}
+	.style_9
+	{
+		color: #007f7f;
+		background-color: #ffffff;
+	}
+	.style_10
+	{
+		color: #301010;
+		background-color: #ffffff;
+	}
+	.style_11
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_16
+	{
+		color: #991111;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+	.style_19
+	{
+		color: #0000d0;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+
+	</style>
+</head>
+
+<body>
+<p>
+<span class="style_9">#include&nbsp;</span><span class="style_6">"externVars.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">"commonEnums.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">"restrictions.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">"analyzer.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">"interpreter.h"</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">&lt;string.h&gt;</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">&lt;stdio.h&gt;</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">&lt;stdlib.h&gt;</span><br />
+<span class="style_5">char&nbsp;</span><span class="style_11">token_type</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;тип&nbsp;токена&nbsp;*/</span><br />
+<span class="style_5">char&nbsp;</span><span class="style_11">tok</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;внутреннее&nbsp;представление&nbsp;лексемы&nbsp;*/</span><br />
+<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">prog</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;текущая&nbsp;позиция&nbsp;в&nbsp;исходном&nbsp;тексте&nbsp;программы&nbsp;*/</span><br />
+<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">p_buf</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;указывает&nbsp;на&nbsp;начало&nbsp;буфера&nbsp;программы&nbsp;*/</span><br />
+<span class="style_5">char&nbsp;</span><span class="style_11">token</span><span class="style_10">[</span><span class="style_4">80</span><span class="style_10">];&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;строковое&nbsp;представление&nbsp;лексемы&nbsp;*/</span><br />
+<span class="style_16">jmp_buf&nbsp;</span><span class="style_11">e_buf</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;содержит&nbsp;информацию&nbsp;для&nbsp;longjmp()&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">functos</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;индекс&nbsp;вершины&nbsp;стека&nbsp;вызова&nbsp;функции&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">func_index</span><span class="style_10">;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;индекс&nbsp;в&nbsp;таблице&nbsp;функций&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">gvar_index</span><span class="style_10">;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;индекс&nbsp;в&nbsp;таблице&nbsp;глобальных&nbsp;переменных&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">garr_index</span><span class="style_10">;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;индекс&nbsp;в&nbsp;таблице&nbsp;глобальных&nbsp;массивов&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">lvartos</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;индекс&nbsp;в&nbsp;стеке&nbsp;локальных&nbsp;переменных&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">larrtos</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;индекс&nbsp;в&nbsp;стеке&nbsp;локальных&nbsp;переменных&nbsp;*/</span><br />
+<span class="style_1">/*&nbsp;Таблица&nbsp;зарезервированных&nbsp;слов&nbsp;*/</span><br />
+<span class="style_5">struct&nbsp;</span><span class="style_19">commands&nbsp;</span><span class="style_11">table</span><span class="style_10">[]&nbsp;=&nbsp;{&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;В&nbsp;эту&nbsp;таблицу&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"if"</span><span class="style_10">,&nbsp;</span><span class="style_11">IF</span><span class="style_10">},&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;команды&nbsp;должны&nbsp;быть&nbsp;введены&nbsp;на&nbsp;нижнем&nbsp;регистре.&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"else"</span><span class="style_10">,&nbsp;</span><span class="style_11">ELSE</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"for"</span><span class="style_10">,&nbsp;</span><span class="style_11">FOR</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"do"</span><span class="style_10">,&nbsp;</span><span class="style_11">DO</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"while"</span><span class="style_10">,&nbsp;</span><span class="style_11">WHILE</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"char"</span><span class="style_10">,&nbsp;</span><span class="style_11">CHAR</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"int"</span><span class="style_10">,&nbsp;</span><span class="style_11">INT</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"return"</span><span class="style_10">,&nbsp;</span><span class="style_11">RETURN</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">"end"</span><span class="style_10">,&nbsp;</span><span class="style_11">END</span><span class="style_10">},</span><br />
+&nbsp;&nbsp;<span class="style_10">{</span><span class="style_6">""</span><span class="style_10">,&nbsp;</span><span class="style_11">END</span><span class="style_10">}&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;конец&nbsp;таблицы&nbsp;*/</span><br />
+<span class="style_10">};</span><br />
+<span class="style_5">struct&nbsp;</span><span class="style_19">func_type&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_11">func_name</span><span class="style_10">[</span><span class="style_11">ID_LEN</span><span class="style_10">];</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">ret_type</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">loc</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;адрес&nbsp;точки&nbsp;входа&nbsp;в&nbsp;файл&nbsp;*/</span><br />
+<span class="style_10">}&nbsp;</span><span class="style_11">func_table</span><span class="style_10">[</span><span class="style_11">NUM_FUNC</span><span class="style_10">];</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">NUM_FUNC</span><span class="style_10">];</span><br />
+<span class="style_1">/*&nbsp;Массив&nbsp;этих&nbsp;структур&nbsp;содержит&nbsp;информацию</span><br />
+&nbsp;&nbsp;&nbsp;<span class="style_1">о&nbsp;глобальных&nbsp;переменных.</span><br />
+<span class="style_1">*/</span><br />
+<span class="style_5">struct&nbsp;</span><span class="style_19">var_type&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_11">var_name</span><span class="style_10">[</span><span class="style_11">ID_LEN</span><span class="style_10">];</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">v_type</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">value</span><span class="style_10">;</span><br />
+<span class="style_10">}&nbsp;</span><span class="style_11">global_vars</span><span class="style_10">[</span><span class="style_11">NUM_GLOBAL_VARS</span><span class="style_10">];</span><br />
+<span class="style_1">/*&nbsp;Стек&nbsp;локальных&nbsp;переменных&nbsp;*/</span><br />
+<span class="style_5">struct&nbsp;</span><span class="style_19">var_type&nbsp;</span><span class="style_11">local_var_stack</span><span class="style_10">[</span><span class="style_11">NUM_LOCAL_VARS</span><span class="style_10">];</span><br />
+<span class="style_1">/*&nbsp;Массив&nbsp;этих&nbsp;структур&nbsp;содержит&nbsp;информацию</span><br />
+&nbsp;&nbsp;&nbsp;<span class="style_1">о&nbsp;глобальных&nbsp;массивах.</span><br />
+<span class="style_1">*/</span><br />
+<span class="style_5">struct&nbsp;</span><span class="style_19">array_type&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_11">arr_name</span><span class="style_10">[</span><span class="style_11">ID_LEN</span><span class="style_10">];</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">arr_type</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">int_arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">char_arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">length</span><span class="style_10">;</span><br />
+<span class="style_10">}&nbsp;</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">NUM_GLOBAL_ARRAYS</span><span class="style_10">];</span><br />
+<span class="style_5">struct&nbsp;</span><span class="style_19">array_type&nbsp;</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">NUM_LOCAL_ARRS</span><span class="style_10">];</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">ret_value</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;возвращаемое&nbsp;значение&nbsp;функции&nbsp;*/</span><br />
+<span class="style_1">/*&nbsp;Найти&nbsp;адреса&nbsp;всех&nbsp;функций&nbsp;в&nbsp;программе</span><br />
+&nbsp;<span class="style_1">и&nbsp;запомнить&nbsp;глобальные&nbsp;переменные.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">prescan</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">p</span><span class="style_10">,&nbsp;*</span><span class="style_11">tp</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_11">temp</span><span class="style_10">[</span><span class="style_4">32</span><span class="style_10">];</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">datatype</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">brace&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;Если&nbsp;brace&nbsp;=&nbsp;0,&nbsp;то&nbsp;текущая</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">позиция&nbsp;указателя&nbsp;программы&nbsp;находится</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">в&nbsp;не&nbsp;какой-либо&nbsp;функции.&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_11">p&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">func_index&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">do&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(</span><span class="style_11">brace</span><span class="style_10">)&nbsp;{&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;обход&nbsp;кода&nbsp;функции&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'{'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">brace</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'}'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">brace</span><span class="style_10">--;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">prog</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;запоминание&nbsp;текущей&nbsp;позиции&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;тип&nbsp;глобальной&nbsp;переменной&nbsp;или&nbsp;возвращаемого&nbsp;значения&nbsp;функции&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">tok</span><span class="style_10">==</span><span class="style_11">CHAR&nbsp;</span><span class="style_10">||&nbsp;</span><span class="style_11">tok</span><span class="style_10">==</span><span class="style_11">INT</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">datatype&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tok</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;запоминание&nbsp;типа&nbsp;данных&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">IDENTIFIER</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">temp</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">ARRAY</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tp</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">decl_global_array</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">'('</span><span class="style_10">)&nbsp;{&nbsp;</span><span class="style_1">/*&nbsp;это&nbsp;должна&nbsp;быть&nbsp;глобальная&nbsp;переменная&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tp</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;возврат&nbsp;в&nbsp;начало&nbsp;объявления&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">decl_global_var</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'('</span><span class="style_10">)&nbsp;{&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;это&nbsp;должна&nbsp;быть&nbsp;функция&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">func_table</span><span class="style_10">[</span><span class="style_11">func_index</span><span class="style_10">].</span><span class="style_11">loc&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">func_table</span><span class="style_10">[</span><span class="style_11">func_index</span><span class="style_10">].</span><span class="style_11">ret_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">datatype</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">func_table</span><span class="style_10">[</span><span class="style_11">func_index</span><span class="style_10">].</span><span class="style_11">func_name</span><span class="style_10">,&nbsp;</span><span class="style_11">temp</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">func_index</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(*</span><span class="style_11">prog&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">')'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;сейчас&nbsp;prog&nbsp;указывает&nbsp;на&nbsp;открывающуюся</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">фигурную&nbsp;скобку&nbsp;функции&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">putback</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'{'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">brace</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">while</span><span class="style_10">(</span><span class="style_11">tok&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_11">FINISHED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">p</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Если&nbsp;индентификатор&nbsp;является&nbsp;переменной,&nbsp;то</span><br />
+&nbsp;<span class="style_1">возвращается&nbsp;1,&nbsp;иначе&nbsp;0.</span><br />
+&nbsp;<span class="style_1">*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">is_var</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">s</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;это&nbsp;локальная&nbsp;переменная&nbsp;?&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_11">lvartos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&gt;=&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">];&nbsp;</span><span class="style_11">i</span><span class="style_10">--)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">local_var_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">var_name</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;если&nbsp;нет&nbsp;-&nbsp;поиск&nbsp;среди&nbsp;глобальных&nbsp;переменных&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">NUM_GLOBAL_VARS</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">global_vars</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">var_name</span><span class="style_10">,&nbsp;</span><span class="style_11">s</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Присваивание&nbsp;переменной&nbsp;значения.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">assign_var</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">var_name</span><span class="style_10">,&nbsp;</span><span class="style_5">int&nbsp;</span><span class="style_11">value</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;проверка&nbsp;наличия&nbsp;локальной&nbsp;переменной&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_11">lvartos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&gt;=&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">];&nbsp;</span><span class="style_11">i</span><span class="style_10">--)&nbsp;&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">local_var_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">var_name</span><span class="style_10">,&nbsp;</span><span class="style_11">var_name</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">local_var_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">])</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;если&nbsp;переменная&nbsp;нелокальная,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">ищем&nbsp;ее&nbsp;в&nbsp;таблице&nbsp;глобальных&nbsp;переменных&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">NUM_GLOBAL_VARS</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">global_vars</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">var_name</span><span class="style_10">,&nbsp;</span><span class="style_11">var_name</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">global_vars</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">NOT_VAR</span><span class="style_10">);&nbsp;</span><span class="style_1">/*&nbsp;переменная&nbsp;не&nbsp;найдена&nbsp;*/</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Присваивание&nbsp;переменной&nbsp;значения.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">assign_arr_element</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_5">int&nbsp;</span><span class="style_11">position</span><span class="style_10">,&nbsp;</span><span class="style_5">int&nbsp;</span><span class="style_11">value</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;проверка&nbsp;наличия&nbsp;локального&nbsp;массива&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_11">larrtos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&gt;=&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">];&nbsp;</span><span class="style_11">i</span><span class="style_10">--)&nbsp;&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">arr_name</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">length&nbsp;</span><span class="style_10">&lt;=&nbsp;</span><span class="style_11">position</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">INDEX_OUT_OF_BOUNDS</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">INT</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">int_arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">+&nbsp;</span><span class="style_11">position</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">CHAR</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">char_arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">+&nbsp;</span><span class="style_11">position</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"only&nbsp;arrays&nbsp;of&nbsp;type&nbsp;int&nbsp;or&nbsp;char&nbsp;are&nbsp;allowed.&nbsp;"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exit</span><span class="style_10">(</span><span class="style_4">1</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">])</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;если&nbsp;переменная&nbsp;нелокальная,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">ищем&nbsp;ее&nbsp;в&nbsp;таблице&nbsp;глобальных&nbsp;переменных&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">NUM_GLOBAL_ARRAYS</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">arr_name</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">length&nbsp;</span><span class="style_10">&lt;=&nbsp;</span><span class="style_11">position</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">INDEX_OUT_OF_BOUNDS</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">INT</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">int_arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">+&nbsp;</span><span class="style_11">position</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">CHAR</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">char_arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">+&nbsp;</span><span class="style_11">position</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"only&nbsp;arrays&nbsp;of&nbsp;type&nbsp;int&nbsp;or&nbsp;char&nbsp;are&nbsp;allowed.&nbsp;"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exit</span><span class="style_10">(</span><span class="style_4">1</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">NOT_ARR</span><span class="style_10">);</span><br />
+<span class="style_10">}</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">is_arr</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">s</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;это&nbsp;локальный&nbsp;массив&nbsp;?&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_11">larrtos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&gt;=&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">];&nbsp;</span><span class="style_11">i</span><span class="style_10">--)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;если&nbsp;нет&nbsp;-&nbsp;поиск&nbsp;среди&nbsp;глобальных&nbsp;переменных&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">NUM_GLOBAL_ARRAYS</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">s</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Объявление&nbsp;локальной&nbsp;переменной.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">decl_local</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">struct&nbsp;</span><span class="style_19">var_type&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;определение&nbsp;типа&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_11">i</span><span class="style_10">.</span><span class="style_11">v_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tok</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">i</span><span class="style_10">.</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;инициализация&nbsp;нулем&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">do&nbsp;</span><span class="style_10">{&nbsp;</span><span class="style_1">/*&nbsp;обработка&nbsp;списка&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_1">/*&nbsp;определение&nbsp;типа&nbsp;пременной&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">.</span><span class="style_11">var_name</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">local_var_push</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">while</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">','</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">';'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">SEMI_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Возврат&nbsp;из&nbsp;функции.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">func_ret</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;получение&nbsp;возвращаемого&nbsp;значения,&nbsp;если&nbsp;оно&nbsp;есть&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_11">eval_exp</span><span class="style_10">(&amp;</span><span class="style_11">value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">ret_value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">value</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Интерпритация&nbsp;одного&nbsp;оператора&nbsp;или&nbsp;блока.&nbsp;Когда</span><br />
+&nbsp;<span class="style_1">interp_block()&nbsp;возвращает&nbsp;управление&nbsp;после&nbsp;первого</span><br />
+&nbsp;<span class="style_1">вызова,&nbsp;в&nbsp;main()&nbsp;встретилась&nbsp;последняя</span><br />
+&nbsp;<span class="style_1">закрывающаяся&nbsp;фигурная&nbsp;скобка&nbsp;или&nbsp;оператор&nbsp;return.</span><br />
+&nbsp;<span class="style_1">*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">interp_block</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_11">block&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">tempProg</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">do&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tempProg&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">token_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;При&nbsp;интерпритации&nbsp;одного&nbsp;операторавозврат</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">после&nbsp;первой&nbsp;точки&nbsp;с&nbsp;запятой.</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;определение&nbsp;типа&nbsp;лексемы&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">IDENTIFIER</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;Это&nbsp;не&nbsp;зарегестрированное&nbsp;слово,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">обрабатывается&nbsp;выражение.&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">putback</span><span class="style_10">();&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;возврат&nbsp;лексемы&nbsp;во&nbsp;входной&nbsp;поток</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">для&nbsp;дальнейшей&nbsp;обработки&nbsp;функцией&nbsp;eval_exp()&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">eval_exp</span><span class="style_10">(&amp;</span><span class="style_11">value</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;обработка&nbsp;выражения&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token</span><span class="style_10">!=</span><span class="style_7">';'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">SEMI_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(</span><span class="style_11">token_type</span><span class="style_10">==</span><span class="style_11">BLOCK</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;если&nbsp;это&nbsp;граничитель&nbsp;блока&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'{'</span><span class="style_10">)&nbsp;{&nbsp;</span><span class="style_1">/*&nbsp;блок&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">block&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">1</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;интерпритация&nbsp;блока,&nbsp;а&nbsp;не&nbsp;оператора&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_1">/*&nbsp;это&nbsp;},&nbsp;возврат&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_1">/*&nbsp;зарезервированное&nbsp;слово&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">switch</span><span class="style_10">(</span><span class="style_11">tok</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">CHAR</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">INT</span><span class="style_10">:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;объявление&nbsp;локальной&nbsp;переменной&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;name</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;[&nbsp;or&nbsp;smth&nbsp;with&nbsp;local&nbsp;var</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">ARRAY</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tempProg</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">decl_local_array</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tempProg</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">decl_local</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">RETURN</span><span class="style_10">:&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;возврат&nbsp;из&nbsp;вызова&nbsp;функции&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">func_ret</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">IF</span><span class="style_10">:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;обработка&nbsp;оператора&nbsp;if&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exec_if</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">ELSE</span><span class="style_10">:&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;обработка&nbsp;оператора&nbsp;else&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">find_eob</span><span class="style_10">();&nbsp;</span><span class="style_1">/*&nbsp;поиск&nbsp;конца&nbsp;блока&nbsp;else</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">и&nbsp;продолжение&nbsp;выполнения&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">WHILE</span><span class="style_10">:&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;обработка&nbsp;цикла&nbsp;while&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exec_while</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">DO</span><span class="style_10">:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;обработка&nbsp;цикла&nbsp;do-while&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exec_do</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">FOR</span><span class="style_10">:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;обработка&nbsp;цикла&nbsp;for&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exec_for</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">case&nbsp;</span><span class="style_11">END</span><span class="style_10">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exit</span><span class="style_10">(</span><span class="style_4">0</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">while</span><span class="style_10">(</span><span class="style_11">tok&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_11">FINISHED&nbsp;</span><span class="style_10">&amp;&amp;&nbsp;</span><span class="style_11">block</span><span class="style_10">);</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Поиск&nbsp;конца&nbsp;блока.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">find_eob</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">brace</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_11">brace&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">do&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'{'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">brace</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'}'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">brace</span><span class="style_10">--;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">while</span><span class="style_10">(</span><span class="style_11">brace</span><span class="style_10">);</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Затолкнуть&nbsp;локальную&nbsp;переменную.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">local_arr_push</span><span class="style_10">(</span><span class="style_5">struct&nbsp;</span><span class="style_19">array_type&nbsp;</span><span class="style_10">*</span><span class="style_11">arr</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">larrtos&nbsp;</span><span class="style_10">&gt;&nbsp;</span><span class="style_11">NUM_LOCAL_ARRS</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">TOO_MANY_LARRS</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">larrtos</span><span class="style_10">]&nbsp;=&nbsp;*</span><span class="style_11">arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">larrtos</span><span class="style_10">++;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_5">struct&nbsp;</span><span class="style_19">array_type&nbsp;</span><span class="style_10">*</span><span class="style_11">get_arr</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">name</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;проверка&nbsp;наличия&nbsp;переменной&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_11">larrtos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&gt;=&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">];&nbsp;</span><span class="style_11">i</span><span class="style_10">--)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">name</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">&amp;</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">];</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">NUM_GLOBAL_ARRAYS</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">name</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">&amp;</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">];</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Вызов&nbsp;функции.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">call</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">loc</span><span class="style_10">,&nbsp;*</span><span class="style_11">temp</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">lvartemp</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">loc&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">find_func</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">);&nbsp;</span><span class="style_1">/*&nbsp;найти&nbsp;точку&nbsp;входа&nbsp;функции&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">loc&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_5">NULL</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">FUNC_UNDEF</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;функция&nbsp;не&nbsp;определена&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">lvartemp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">lvartos</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;запоминание&nbsp;индекса&nbsp;стека</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">локальных&nbsp;переменных&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_args</span><span class="style_10">();&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;получение&nbsp;аргумента&nbsp;функции&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">prog</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;запоминание&nbsp;адреса&nbsp;возврата&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">func_push</span><span class="style_10">(</span><span class="style_11">lvartemp</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;запоминание&nbsp;индекса&nbsp;стека</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">локальных&nbsp;переменных&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">loc</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;переустановка&nbsp;prog&nbsp;в&nbsp;начало&nbsp;функции&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_params</span><span class="style_10">();&nbsp;</span><span class="style_1">/*&nbsp;загрузка&nbsp;параметров&nbsp;функции</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">значениями&nbsp;аргументов&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">interp_block</span><span class="style_10">();&nbsp;</span><span class="style_1">/*&nbsp;интерпретация&nbsp;функции&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">temp</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;восстановление&nbsp;prog&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">lvartos&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">func_pop</span><span class="style_10">();&nbsp;</span><span class="style_1">/*&nbsp;восстановление&nbsp;стека&nbsp;локальных&nbsp;переменных&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Заталкивание&nbsp;аргументов&nbsp;функций&nbsp;в&nbsp;стек</span><br />
+&nbsp;<span class="style_1">локальных&nbsp;переменных.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">get_args</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">value</span><span class="style_10">,&nbsp;</span><span class="style_11">count</span><span class="style_10">,&nbsp;</span><span class="style_11">temp</span><span class="style_10">[</span><span class="style_11">NUM_PARAMS</span><span class="style_10">];</span><br />
+&nbsp;&nbsp;<span class="style_5">struct&nbsp;</span><span class="style_19">var_type&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">count&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">'('</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">PAREN_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;обработка&nbsp;списка&nbsp;значений&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">do&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">tempProg&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;name&nbsp;or&nbsp;number</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">')'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">copy&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">malloc</span><span class="style_10">(</span><span class="style_11">strlen</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">)&nbsp;+&nbsp;</span><span class="style_4">1</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">copy</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">is_arr</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;'['&nbsp;or&nbsp;','</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">','</span><span class="style_10">)&nbsp;{&nbsp;&nbsp;</span><span class="style_2">//&nbsp;array&nbsp;is&nbsp;passed&nbsp;by&nbsp;pointer</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">local_arr_push</span><span class="style_10">(</span><span class="style_11">get_arr</span><span class="style_10">(</span><span class="style_11">copy</span><span class="style_10">));</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">continue</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_2">//&nbsp;array&nbsp;was&nbsp;pushed&nbsp;into&nbsp;local&nbsp;array&nbsp;stack</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tempProg</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tempProg</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">free</span><span class="style_10">(</span><span class="style_11">copy</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">eval_exp</span><span class="style_10">(&amp;</span><span class="style_11">value</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp</span><span class="style_10">[</span><span class="style_11">count</span><span class="style_10">]&nbsp;=&nbsp;</span><span class="style_11">value</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;временное&nbsp;запоминание&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">count</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">while</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">','</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">count</span><span class="style_10">--;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;затолкнуть&nbsp;в&nbsp;local_var_stack&nbsp;в&nbsp;обратном&nbsp;порядке&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(;&nbsp;</span><span class="style_11">count</span><span class="style_10">&gt;=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">count</span><span class="style_10">--)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">i</span><span class="style_10">.</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">temp</span><span class="style_10">[</span><span class="style_11">count</span><span class="style_10">];</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">i</span><span class="style_10">.</span><span class="style_11">v_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">ARG</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">local_var_push</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Получение&nbsp;параметров&nbsp;функции.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">get_params</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">struct&nbsp;</span><span class="style_19">var_type&nbsp;</span><span class="style_10">*</span><span class="style_11">var</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">varIdx</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">struct&nbsp;</span><span class="style_19">array_type&nbsp;</span><span class="style_10">*</span><span class="style_11">arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">arrIdx</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_11">copyTokenType</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">varIdx&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">lvartos&nbsp;</span><span class="style_10">-&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">arrIdx&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">larrtos&nbsp;</span><span class="style_10">-&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">do&nbsp;</span><span class="style_10">{&nbsp;</span><span class="style_1">/*&nbsp;обработка&nbsp;списка&nbsp;параметров&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">')'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">tok&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_11">INT&nbsp;</span><span class="style_10">&amp;&amp;&nbsp;</span><span class="style_11">tok&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_11">CHAR</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">TYPE_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">copyTokenType&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tok</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;имя&nbsp;переменной&nbsp;или&nbsp;массива</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">nameCopy&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">malloc</span><span class="style_10">(</span><span class="style_11">strlen</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">)&nbsp;+&nbsp;</span><span class="style_4">1</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">nameCopy</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">')'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;'['&nbsp;или&nbsp;','</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">ARRAY</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">arr&nbsp;</span><span class="style_10">=&nbsp;&amp;</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">arrIdx</span><span class="style_10">];</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">arr</span><span class="style_10">-&gt;</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">copyTokenType</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">arr</span><span class="style_10">-&gt;</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">nameCopy</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;']'</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;','</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">arrIdx</span><span class="style_10">--;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">var&nbsp;</span><span class="style_10">=&nbsp;&amp;</span><span class="style_11">local_var_stack</span><span class="style_10">[</span><span class="style_11">varIdx</span><span class="style_10">];</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">var</span><span class="style_10">-&gt;</span><span class="style_11">v_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">copyTokenType</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">var</span><span class="style_10">-&gt;</span><span class="style_11">var_name</span><span class="style_10">,&nbsp;</span><span class="style_11">nameCopy</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">varIdx</span><span class="style_10">--;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">break</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">while</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">','</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">')'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">PAREN_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Запись&nbsp;индекса&nbsp;в&nbsp;стек&nbsp;локальных&nbsp;переменных.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">func_push</span><span class="style_10">(</span><span class="style_5">int&nbsp;</span><span class="style_11">i</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">functos</span><span class="style_10">&gt;</span><span class="style_11">NUM_FUNC</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">NEST_FUNC</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">]&nbsp;=&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">functos</span><span class="style_10">++;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Выталкивание&nbsp;индекса&nbsp;в&nbsp;стеке&nbsp;локальных&nbsp;переменных.&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">func_pop</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_11">functos</span><span class="style_10">--;</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">functos&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_4">0</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">RET_NOCALL</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">];</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Затолкнуть&nbsp;локальную&nbsp;переменную.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">local_var_push</span><span class="style_10">(</span><span class="style_5">struct&nbsp;</span><span class="style_19">var_type&nbsp;</span><span class="style_11">i</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">lvartos&nbsp;</span><span class="style_10">&gt;&nbsp;</span><span class="style_11">NUM_LOCAL_VARS</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">TOO_MANY_LVARS</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">local_var_stack</span><span class="style_10">[</span><span class="style_11">lvartos</span><span class="style_10">]&nbsp;=&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">lvartos</span><span class="style_10">++;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Возврат&nbsp;адреса&nbsp;точки&nbsp;входа&nbsp;данной&nbsp;функции.</span><br />
+&nbsp;<span class="style_1">Возврат&nbsp;NULL,&nbsp;если&nbsp;не&nbsp;надена.</span><br />
+&nbsp;<span class="style_1">*/</span><br />
+<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">find_func</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">name</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">func_index</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">name</span><span class="style_10">,&nbsp;</span><span class="style_11">func_table</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">func_name</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_11">func_table</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">loc</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;NULL</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Загрузка&nbsp;программы.&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">load_program</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">p</span><span class="style_10">,&nbsp;</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">fname</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_16">FILE&nbsp;</span><span class="style_10">*</span><span class="style_11">fp</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">((</span><span class="style_11">fp</span><span class="style_10">=</span><span class="style_11">fopen</span><span class="style_10">(</span><span class="style_11">fname</span><span class="style_10">,&nbsp;</span><span class="style_6">"rb"</span><span class="style_10">))==</span><span class="style_5">NULL</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">i&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">do&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*</span><span class="style_11">p&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">getc</span><span class="style_10">(</span><span class="style_11">fp</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">p</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">i</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">while</span><span class="style_10">(!</span><span class="style_11">feof</span><span class="style_10">(</span><span class="style_11">fp</span><span class="style_10">)&nbsp;&amp;&amp;&nbsp;</span><span class="style_11">i</span><span class="style_10">&lt;</span><span class="style_11">PROG_SIZE</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*(</span><span class="style_11">p</span><span class="style_10">-</span><span class="style_4">2</span><span class="style_10">)&nbsp;==&nbsp;</span><span class="style_4">0x1a</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*(</span><span class="style_11">p</span><span class="style_10">-</span><span class="style_4">2</span><span class="style_10">)&nbsp;=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_1">/*&nbsp;программа&nbsp;кончается&nbsp;нулевым&nbsp;символом&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">*(</span><span class="style_11">p</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">)&nbsp;=&nbsp;</span><span class="style_7">'\0'</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">fclose</span><span class="style_10">(</span><span class="style_11">fp</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Объявление&nbsp;локального&nbsp;массива.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">decl_local_array</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">struct&nbsp;</span><span class="style_19">array_type&nbsp;</span><span class="style_11">newLocalArr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;определение&nbsp;типа&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">arrtype&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tok</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">newLocalArr</span><span class="style_10">.</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">arrtype</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;имя</span><br />
+&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">newLocalArr</span><span class="style_10">.</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;[</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">'['</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">ARRAY_BRACE_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;число</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_11">NUMBER</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">NUM_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">arr_length&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">atoi</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">newLocalArr</span><span class="style_10">.</span><span class="style_11">length&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">arr_length</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;]</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">']'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">ARRAY_BRACE_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">arrtype&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">INT</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">newLocalArr</span><span class="style_10">.</span><span class="style_11">int_arr&nbsp;</span><span class="style_10">=&nbsp;(</span><span class="style_5">int&nbsp;</span><span class="style_10">*)</span><span class="style_11">malloc</span><span class="style_10">(</span><span class="style_5">sizeof</span><span class="style_10">(</span><span class="style_5">int</span><span class="style_10">)&nbsp;*&nbsp;</span><span class="style_11">arr_length</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(</span><span class="style_11">arrtype&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">CHAR</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">newLocalArr</span><span class="style_10">.</span><span class="style_11">char_arr&nbsp;</span><span class="style_10">=&nbsp;(</span><span class="style_5">char&nbsp;</span><span class="style_10">*)</span><span class="style_11">malloc</span><span class="style_10">(</span><span class="style_5">sizeof</span><span class="style_10">(</span><span class="style_5">char</span><span class="style_10">)&nbsp;*&nbsp;</span><span class="style_11">arr_length</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;;</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">';'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">SEMI_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">lvartos&nbsp;</span><span class="style_10">&gt;&nbsp;</span><span class="style_11">NUM_LOCAL_ARRS</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">TOO_MANY_LARRS</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">larrtos</span><span class="style_10">]&nbsp;=&nbsp;</span><span class="style_11">newLocalArr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">larrtos</span><span class="style_10">++;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">decl_global_array</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;тип</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">arrtype&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tok</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">garr_index</span><span class="style_10">].</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">arrtype</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;имя</span><br />
+&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">garr_index</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;[</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">'['</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">ARRAY_BRACE_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">token_type&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_11">NUMBER</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">NUM_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">arr_length&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">atoi</span><span class="style_10">(</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;]</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">']'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">ARRAY_BRACE_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">garr_index</span><span class="style_10">].</span><span class="style_11">length&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">arr_length</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">arrtype&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">INT</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">garr_index</span><span class="style_10">].</span><span class="style_11">int_arr&nbsp;</span><span class="style_10">=&nbsp;(</span><span class="style_5">int&nbsp;</span><span class="style_10">*)</span><span class="style_11">malloc</span><span class="style_10">(</span><span class="style_5">sizeof</span><span class="style_10">(</span><span class="style_5">int</span><span class="style_10">)&nbsp;*&nbsp;</span><span class="style_11">arr_length</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(</span><span class="style_11">arrtype&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">CHAR</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">garr_index</span><span class="style_10">].</span><span class="style_11">char_arr&nbsp;</span><span class="style_10">=&nbsp;(</span><span class="style_5">char&nbsp;</span><span class="style_10">*)</span><span class="style_11">malloc</span><span class="style_10">(</span><span class="style_5">sizeof</span><span class="style_10">(</span><span class="style_5">char</span><span class="style_10">)&nbsp;*&nbsp;</span><span class="style_11">arr_length</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_2">//&nbsp;;</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">';'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">SEMI_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">garr_index</span><span class="style_10">++;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Объявление&nbsp;глобальной&nbsp;переменной.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">decl_global_var</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">vartype</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;определение&nbsp;типа&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_11">vartype&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tok</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;запоминание&nbsp;типа&nbsp;переменной&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">do&nbsp;</span><span class="style_10">{&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;обработка&nbsp;списка&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">global_vars</span><span class="style_10">[</span><span class="style_11">gvar_index</span><span class="style_10">].</span><span class="style_11">v_type&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">vartype</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">global_vars</span><span class="style_10">[</span><span class="style_11">gvar_index</span><span class="style_10">].</span><span class="style_11">value&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">0</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;инициализация&nbsp;нулем&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;определение&nbsp;имени&nbsp;в&nbsp;*token&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">strcpy</span><span class="style_10">(</span><span class="style_11">global_vars</span><span class="style_10">[</span><span class="style_11">gvar_index</span><span class="style_10">].</span><span class="style_11">var_name</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">gvar_index</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">while</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">','</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">';'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">SEMI_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;получение&nbsp;значения&nbsp;из&nbsp;массива&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">find_arr_element</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_5">int&nbsp;</span><span class="style_11">position</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;проверка&nbsp;наличия&nbsp;локального&nbsp;массива&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_11">larrtos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&gt;=&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">];&nbsp;</span><span class="style_11">i</span><span class="style_10">--)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">length&nbsp;</span><span class="style_10">&lt;=&nbsp;</span><span class="style_11">position</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">INDEX_OUT_OF_BOUNDS</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">INT</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">int_arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">+&nbsp;</span><span class="style_11">position</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">CHAR</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">char_arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">+&nbsp;</span><span class="style_11">position</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"разрешены&nbsp;только&nbsp;типы&nbsp;int&nbsp;и&nbsp;char&nbsp;для&nbsp;массива"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exit</span><span class="style_10">(</span><span class="style_4">1</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">])</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;если&nbsp;массив&nbsp;нелокальный,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">ищем&nbsp;ее&nbsp;в&nbsp;таблице&nbsp;глобальных&nbsp;массивов&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">NUM_GLOBAL_ARRAYS</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">arr_name</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">length&nbsp;</span><span class="style_10">&lt;=&nbsp;</span><span class="style_11">position</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">INDEX_OUT_OF_BOUNDS</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">INT</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">int_arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">+&nbsp;</span><span class="style_11">position</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;if</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_type&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_11">CHAR</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">char_arr</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">tmpArrStart&nbsp;</span><span class="style_10">+&nbsp;</span><span class="style_11">position</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">*</span><span class="style_11">tmpArrStart</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">printf</span><span class="style_10">(</span><span class="style_6">"only&nbsp;arrays&nbsp;of&nbsp;type&nbsp;int&nbsp;or&nbsp;char&nbsp;are&nbsp;allowed.&nbsp;"</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">exit</span><span class="style_10">(</span><span class="style_4">1</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">NOT_ARR</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">arr_exists</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">name</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;проверка&nbsp;наличия&nbsp;переменной&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_11">larrtos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&gt;=&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">];&nbsp;</span><span class="style_11">i</span><span class="style_10">--)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">local_arr_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">name</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">NUM_GLOBAL_ARRAYS</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">arr_name</span><span class="style_10">,&nbsp;</span><span class="style_11">name</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_4">0</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">free_arr</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">NUM_GLOBAL_ARRAYS</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">free</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">int_arr</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">free</span><span class="style_10">(</span><span class="style_11">global_arrays</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">char_arr</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Получение&nbsp;значения&nbsp;переменной.&nbsp;*/</span><br />
+<span class="style_5">int&nbsp;</span><span class="style_11">find_var</span><span class="style_10">(</span><span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">s</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">register&nbsp;int&nbsp;</span><span class="style_11">i</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;проверка&nbsp;наличия&nbsp;переменной&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_11">lvartos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&gt;=&nbsp;</span><span class="style_11">call_stack</span><span class="style_10">[</span><span class="style_11">functos</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">];&nbsp;</span><span class="style_11">i</span><span class="style_10">--)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">local_var_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">var_name</span><span class="style_10">,&nbsp;</span><span class="style_11">token</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_11">local_var_stack</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_1">/*&nbsp;в&nbsp;противном&nbsp;случае&nbsp;проверим,</span><br />
+&nbsp;&nbsp;&nbsp;<span class="style_1">может&nbsp;быть&nbsp;это&nbsp;глобальная&nbsp;переменная&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(</span><span class="style_11">i</span><span class="style_10">=</span><span class="style_4">0</span><span class="style_10">;&nbsp;</span><span class="style_11">i&nbsp;</span><span class="style_10">&lt;&nbsp;</span><span class="style_11">NUM_GLOBAL_VARS</span><span class="style_10">;&nbsp;</span><span class="style_11">i</span><span class="style_10">++)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(!</span><span class="style_11">strcmp</span><span class="style_10">(</span><span class="style_11">global_vars</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">var_name</span><span class="style_10">,&nbsp;</span><span class="style_11">s</span><span class="style_10">))&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_11">global_vars</span><span class="style_10">[</span><span class="style_11">i</span><span class="style_10">].</span><span class="style_11">value</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">NOT_VAR</span><span class="style_10">);&nbsp;</span><span class="style_1">/*&nbsp;переменная&nbsp;не&nbsp;найдена&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">return&nbsp;</span><span class="style_10">-</span><span class="style_4">1</span><span class="style_10">;</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Выполнение&nbsp;оператора&nbsp;if.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">exec_if</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">cond</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">eval_exp</span><span class="style_10">(&amp;</span><span class="style_11">cond</span><span class="style_10">);&nbsp;</span><span class="style_1">/*&nbsp;вычисление&nbsp;if-выражения&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">cond</span><span class="style_10">)&nbsp;{&nbsp;</span><span class="style_1">/*&nbsp;истина&nbsp;-&nbsp;интерпретация&nbsp;if-предложения&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">interp_block</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_5">else&nbsp;</span><span class="style_10">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;в&nbsp;противном&nbsp;случае&nbsp;пропуск&nbsp;if-предложения</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">и&nbsp;выполнение&nbsp;else-предложения,&nbsp;если&nbsp;оно&nbsp;есть&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">find_eob</span><span class="style_10">();&nbsp;</span><span class="style_1">/*&nbsp;поиск&nbsp;конца&nbsp;блока&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">tok&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_11">ELSE</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">putback</span><span class="style_10">();&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;восстановление&nbsp;лексемы,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">если&nbsp;else-предложение&nbsp;отсутсвует&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">interp_block</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Выполнение&nbsp;цикла&nbsp;while.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">exec_while</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">cond</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">temp</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">putback</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">prog</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;запоминание&nbsp;адреса&nbsp;начала&nbsp;цикла&nbsp;while&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_11">eval_exp</span><span class="style_10">(&amp;</span><span class="style_11">cond</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;вычисление&nbsp;управляющего&nbsp;выражения&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">cond</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">interp_block</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;если&nbsp;оно&nbsp;истинно,&nbsp;то&nbsp;выполнить</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">интерпритацию&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">else&nbsp;</span><span class="style_10">{&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;в&nbsp;противном&nbsp;случае&nbsp;цикл&nbsp;пропускается&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">find_eob</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">temp</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;возврат&nbsp;к&nbsp;началу&nbsp;цикла&nbsp;*/</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Выполнение&nbsp;цикла&nbsp;do.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">exec_do</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">cond</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">temp</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">putback</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">prog</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;запоминание&nbsp;адреса&nbsp;начала&nbsp;цикла&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();&nbsp;</span><span class="style_1">/*&nbsp;найти&nbsp;начало&nbsp;цикла&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_11">interp_block</span><span class="style_10">();&nbsp;</span><span class="style_1">/*&nbsp;интерпритация&nbsp;цикла&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">tok&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_11">WHILE</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">WHILE_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">eval_exp</span><span class="style_10">(&amp;</span><span class="style_11">cond</span><span class="style_10">);&nbsp;</span><span class="style_1">/*&nbsp;проверка&nbsp;условия&nbsp;цикла&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">cond</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">temp</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_10">}&nbsp;</span><span class="style_1">/*&nbsp;если&nbsp;условие&nbsp;истинно,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">то&nbsp;цикл&nbsp;выполняется,&nbsp;в&nbsp;противном&nbsp;случае&nbsp;происходит</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">выход&nbsp;из&nbsp;цикла&nbsp;*/</span><br />
+<span class="style_10">}</span><br />
+<span class="style_1">/*&nbsp;Выполнение&nbsp;цикла&nbsp;for.&nbsp;*/</span><br />
+<span class="style_5">void&nbsp;</span><span class="style_11">exec_for</span><span class="style_10">(</span><span class="style_5">void</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">cond</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">char&nbsp;</span><span class="style_10">*</span><span class="style_11">temp</span><span class="style_10">,&nbsp;*</span><span class="style_11">temp2</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">int&nbsp;</span><span class="style_11">brace&nbsp;</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;<span class="style_11">eval_exp</span><span class="style_10">(&amp;</span><span class="style_11">cond</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;инициализирующее&nbsp;выражение&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">';'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">SEMI_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;&nbsp;</span><span class="style_1">/*&nbsp;пропуск&nbsp;;&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_11">temp&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;<span class="style_5">for</span><span class="style_10">(;;)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">eval_exp</span><span class="style_10">(&amp;</span><span class="style_11">cond</span><span class="style_10">);&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;проверка&nbsp;условия&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">!=&nbsp;</span><span class="style_7">';'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">sntx_err</span><span class="style_10">(</span><span class="style_11">SEMI_EXPECTED</span><span class="style_10">);</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog</span><span class="style_10">++;&nbsp;</span><span class="style_1">/*&nbsp;пропуск&nbsp;;&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">temp2&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">prog</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_1">/*&nbsp;поиск&nbsp;начала&nbsp;тела&nbsp;цикла&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">brace&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_4">1</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">while</span><span class="style_10">(</span><span class="style_11">brace</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">get_token</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">'('</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">brace</span><span class="style_10">++;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(*</span><span class="style_11">token&nbsp;</span><span class="style_10">==&nbsp;</span><span class="style_7">')'</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">brace</span><span class="style_10">--;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">if</span><span class="style_10">(</span><span class="style_11">cond</span><span class="style_10">)&nbsp;{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">interp_block</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;если&nbsp;условие&nbsp;выполнено,&nbsp;то&nbsp;выполнить&nbsp;интерпретацию&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">else&nbsp;</span><span class="style_10">{&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;в&nbsp;противном&nbsp;случае&nbsp;обойти&nbsp;цикл&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">find_eob</span><span class="style_10">();</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_5">return</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_10">}</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">temp2</span><span class="style_10">;</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">eval_exp</span><span class="style_10">(&amp;</span><span class="style_11">cond</span><span class="style_10">);&nbsp;</span><span class="style_1">/*&nbsp;выполнение&nbsp;инкремента&nbsp;*/</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="style_11">prog&nbsp;</span><span class="style_10">=&nbsp;</span><span class="style_11">temp</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;возврат&nbsp;в&nbsp;начало&nbsp;цикла&nbsp;*/</span><br />
+&nbsp;&nbsp;<span class="style_10">}</span><br />
+<span class="style_10">}</span><br />
+
+</p>
+</body>
+</html>

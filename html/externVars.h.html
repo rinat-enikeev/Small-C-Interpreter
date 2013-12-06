@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>/home/aynur/develop/work/Small-C-Interpreter/externVars.h</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 1.23.1" />
+	<meta name="date" content="2013-12-06T23:49:45+0600" />
+	<style type="text/css">
+	body
+	{
+		font-family: Ubuntu Mono, monospace;
+		font-size: 16pt;
+	}
+	.style_0
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_1
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_2
+	{
+		color: #3f5fbf;
+		background-color: #ffffff;
+	}
+	.style_4
+	{
+		color: #007f00;
+		background-color: #ffffff;
+	}
+	.style_5
+	{
+		color: #00007f;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+	.style_6
+	{
+		color: #ff8000;
+		background-color: #ffffff;
+	}
+	.style_9
+	{
+		color: #007f7f;
+		background-color: #ffffff;
+	}
+	.style_10
+	{
+		color: #301010;
+		background-color: #ffffff;
+	}
+	.style_11
+	{
+		color: #000000;
+		background-color: #ffffff;
+	}
+	.style_16
+	{
+		color: #991111;
+		background-color: #ffffff;
+		font-weight: bold;
+	}
+
+	</style>
+</head>
+
+<body>
+<p>
+<span class="style_9">#ifndef&nbsp;</span><span class="style_11">EXTERN_VAR_DECL_H</span><br />
+<span class="style_9">#define&nbsp;</span><span class="style_11">EXTERN_VAR_DECL_H</span><br />
+<span class="style_9">#include&nbsp;</span><span class="style_6">&lt;setjmp.h&gt;</span><br />
+<span class="style_5">extern&nbsp;char&nbsp;</span><span class="style_11">token_type</span><span class="style_10">;&nbsp;</span><span class="style_1">/*&nbsp;содержит&nbsp;тип&nbsp;лексемы&nbsp;из&nbsp;перечисления&nbsp;tok_types&nbsp;*/</span><br />
+<span class="style_5">extern&nbsp;char&nbsp;</span><span class="style_11">tok</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;внутреннее&nbsp;представление&nbsp;лексемы&nbsp;*/</span><br />
+<span class="style_5">extern&nbsp;char&nbsp;</span><span class="style_10">*</span><span class="style_11">prog</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;текущая&nbsp;позиция&nbsp;в&nbsp;исходном&nbsp;тексте&nbsp;программы&nbsp;*/</span><br />
+<span class="style_5">extern&nbsp;char&nbsp;</span><span class="style_11">token</span><span class="style_10">[</span><span class="style_4">80</span><span class="style_10">];&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;строковое&nbsp;представление&nbsp;лексемы&nbsp;*/</span><br />
+<span class="style_5">extern&nbsp;char&nbsp;</span><span class="style_10">*</span><span class="style_11">p_buf</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;указатель&nbsp;на&nbsp;начало&nbsp;буфера&nbsp;программы&nbsp;*/</span><br />
+<span class="style_5">extern&nbsp;</span><span class="style_16">jmp_buf&nbsp;</span><span class="style_11">e_buf</span><span class="style_10">;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;содержит&nbsp;данные&nbsp;для&nbsp;longjmp()&nbsp;*/</span><br />
+<span class="style_5">extern&nbsp;int&nbsp;</span><span class="style_11">gvar_index</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;индекс&nbsp;в&nbsp;таблице&nbsp;глобальных&nbsp;переменных&nbsp;*/</span><br />
+<span class="style_5">extern&nbsp;int&nbsp;</span><span class="style_11">garr_index</span><span class="style_10">;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;индекс&nbsp;в&nbsp;таблице&nbsp;глобальных&nbsp;массивов&nbsp;*/</span><br />
+<span class="style_5">extern&nbsp;int&nbsp;</span><span class="style_11">lvartos</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;индекс&nbsp;в&nbsp;стеке&nbsp;локальных&nbsp;переменных&nbsp;*/</span><br />
+<span class="style_5">extern&nbsp;int&nbsp;</span><span class="style_11">larrtos</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;индекс&nbsp;в&nbsp;стеке&nbsp;локальных&nbsp;переменных&nbsp;*/</span><br />
+<span class="style_5">extern&nbsp;int&nbsp;</span><span class="style_11">functos</span><span class="style_10">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;индекс&nbsp;вершины&nbsp;стека&nbsp;вызова&nbsp;функции&nbsp;*/</span><br />
+<span class="style_5">extern&nbsp;int&nbsp;</span><span class="style_11">ret_value</span><span class="style_10">;&nbsp;&nbsp;&nbsp;</span><span class="style_1">/*&nbsp;возвращаемое&nbsp;значение&nbsp;функции&nbsp;*/</span><br />
+<span class="style_9">#endif&nbsp;</span><span class="style_2">//EXTERN_VAR_DECL_H</span><br />
+
+</p>
+</body>
+</html>

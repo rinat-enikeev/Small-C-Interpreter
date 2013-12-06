@@ -4,8 +4,13 @@ int foo(int arr[], int b) {
 }
 
 int main() {
+  int q;
   int local_array[8];
   local_array[0] = 777;
+  q = local_array[0];
+  puts("q = ");
+  print(q);
+  puts("");
   print(local_array[0]==777);
   foo(local_array, 555);
   print(local_array[0]==555);

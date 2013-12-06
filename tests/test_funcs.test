@@ -14,13 +14,14 @@ int main() {
   }
   for(i=0; i < 20; i=i+1) {
     f[i]=20-i;
+    print(f[i]);
   }
   func3(e,f,10);
   /*e={30,29,...,21}*/
   for(i=0; i < 10; i=i+1) {
     arr_glob[i]=e[i];
   }
-  h=f[0];
+  h=f[0]; /*h==20*/
   g=func4(5); /*120*/
 }
 

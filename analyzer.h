@@ -1,14 +1,11 @@
 #ifndef ANALYZER_H
 #define ANALYZER_H
-
 /* Функции в анализаторе */
-
 /* Используемые другими модулями */
 int get_token(void);
 void sntx_err(int error);
 void putback(void);
 void eval_exp(int *value);
-
 /* Внутренние */
 void eval_exp0(int *value); // =
 void eval_exp1(int *value); // < > <= >=
@@ -21,5 +18,4 @@ int look_up(char *s);
 int isdelim(char c);
 int iswhite(char c);
 int internal_func(char *s);
-
 #endif //ANALYZER_H

@@ -1,0 +1,45 @@
+int print_result(int r) {
+  if(r==1) {
+    puts("TRUE");
+  } else {
+    puts("FALSE");
+  }
+}
+
+int main() {
+  int a,b;
+  a = 10;
+  b = 3;
+  print("a ="); print(a); puts("");
+  print("b ="); print(b); puts("");
+  print("(a+b)==13");
+  print_result((a+b)==13);
+  print("(a-b)==7 ");
+  print_result((a-b)==7);
+  print("(a*b)==30");
+  print_result((a*b)==30);
+  print("(a/b)==3 ");
+  print_result((a/b)==3);
+  print("(a%b)==1 ");
+  print_result((a%b)==1);
+
+  print("a>b:  ");
+  print_result(a>b);
+  print("a<b:  ");
+  print_result(a<b);
+  print("a>a:  ");
+  print_result(a>a);
+  print("b<b:  ");
+  print_result(b<b);
+  print("a>=a: ");
+  print_result(a>=a);
+  print("a<=a: ");
+  print_result(a<=a);
+  print("a==b: ");
+  print_result(a==b);
+  print("a!=b: ");
+  print_result(a!=b);
+  print("a==a: ");
+  print_result(a==a);
+}
+

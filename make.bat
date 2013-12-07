@@ -1,6 +1,7 @@
-cl testAnalyzer.cpp analyzer.cpp
-testAnalyzer.exe
-cl testSmallC.cpp smallC.cpp analyzer.cpp
-testSmallC.exe
-cl smallC.cpp analyzer.cpp
-
+@echo off
+cl /MT /TP smallC.c analyzer.c lib.c interpreter.c
+pushd .
+cd tests
+call make_tests.bat
+popd
+call clear.bat

@@ -5,6 +5,7 @@
 #include "../lib.c"
 #include "../interpreter.c"
 #include "../analyzer.c"
+#include <locale.h>
 #include <assert.h>
 
 void print_source(void);
@@ -12,6 +13,7 @@ void testcase(void);
 extern char *source;
 
 int main(int argc, char *argv[]) {
+  //setlocale(LC_ALL, "Russian");
   if((p_buf = (char *)malloc(PROG_SIZE))==NULL) {
     printf("Выделить память не удалось");
     exit(1);

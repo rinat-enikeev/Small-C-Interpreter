@@ -1,5 +1,7 @@
 #include "common.h"
+//#include <locale.h>
 int main(int argc, char *argv[]) {
+  //setlocale(LC_ALL, "Russian");
   printf("Среды программирования. Курсовая работа. \n");
   printf("Интерпретатор small C. Авторы: Ринат Еникеев, Айнур Ишбулдин.\n");
   if(argc != 2) {

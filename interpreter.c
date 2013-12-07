@@ -385,7 +385,7 @@ void get_args(void) {
     if(*token == ')') {
       break;
     }
-    char *copy = malloc(strlen(token) + 1);
+    char *copy = (char *)malloc(strlen(token) + 1);
     strcpy(copy, token);
     if(is_arr(token)) {
       get_token();         // '[' or ','
@@ -429,7 +429,7 @@ void get_params(void) {
       }
       copyTokenType = tok;
       get_token(); // имя переменной или массива
-      char *nameCopy = malloc(strlen(token) + 1);
+      char *nameCopy = (char *)malloc(strlen(token) + 1);
       strcpy(nameCopy, token);
       if(*token == ')') {
         break;

@@ -15,13 +15,13 @@
 
 struct intern_func_type {
   const char *f_name; /* имя функции */
-  int (*p)();   /* указатель на функцию */
+  int (*p)(void);   /* указатель на функцию */
 } intern_func[] = {
-  {"print", print},
-  {"getnum", getnum},
-  {"getche", call_getche},
-  {"putch", call_put_char},
-  {"puts", call_put_string},
+  {"print", (int (*)(void))print},
+  {"getnum", (int (*)(void))getnum},
+  {"getche", (int (*)(void))call_getche},
+  {"putch", (int (*)(void))call_put_char},
+  {"puts", (int (*)(void))call_put_string},
   {"", 0}  /* этот список заканчивается нулем */
 };
 /* Точка входа для вычисления выражение в синтаксическом дереве */

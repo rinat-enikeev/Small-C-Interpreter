@@ -12,13 +12,13 @@
 		8B34BEFF184C818E00CFDD66 /* lib.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BEFB184C818E00CFDD66 /* lib.c */; };
 		8B34BF00184C818E00CFDD66 /* smallC.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B34BEFD184C818E00CFDD66 /* smallC.c */; };
 		8B706CB418570DB100FC2D1C /* test_analyzer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B706CB318570DB100FC2D1C /* test_analyzer.c */; };
+		8B8F8BC018572664009C571D /* test_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 8B8F8BBE18572664009C571D /* test_funcs.c */; };
+		8B8F8BC118572680009C571D /* test_funcs.test in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8B8F8BBF18572664009C571D /* test_funcs.test */; };
 		8BD6C8F318570DCC001ECF64 /* test_analyzer.test in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8B706CB518570DB800FC2D1C /* test_analyzer.test */; };
 		8BD6C8F518570E00001ECF64 /* test_prescan.c in Sources */ = {isa = PBXBuildFile; fileRef = 8BD6C8F418570E00001ECF64 /* test_prescan.c */; };
 		8BD6C8F718570E0E001ECF64 /* test_prescan.test in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8BD6C8F618570E06001ECF64 /* test_prescan.test */; };
 		8BD6C8F918570E1C001ECF64 /* test_arrays.c in Sources */ = {isa = PBXBuildFile; fileRef = 8BD6C8F818570E1C001ECF64 /* test_arrays.c */; };
 		8BD6C8FB18570E29001ECF64 /* test_arrays.test in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8BD6C8FA18570E21001ECF64 /* test_arrays.test */; };
-		8BD6C90A18570E87001ECF64 /* test_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 8BD6C90918570E87001ECF64 /* test_funcs.c */; };
-		8BD6C90C18570E9C001ECF64 /* test_funcs.test in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8BD6C90B18570E8C001ECF64 /* test_funcs.test */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -67,7 +67,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
-				8BD6C90C18570E9C001ECF64 /* test_funcs.test in CopyFiles */,
+				8B8F8BC118572680009C571D /* test_funcs.test in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,6 +87,8 @@
 		8B70642F184C8D24006F2128 /* testStrings */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = testStrings; path = testArrays; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B706CB318570DB100FC2D1C /* test_analyzer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test_analyzer.c; path = ../tests/test_analyzer.c; sourceTree = SOURCE_ROOT; };
 		8B706CB518570DB800FC2D1C /* test_analyzer.test */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test_analyzer.test; path = ../tests/test_analyzer.test; sourceTree = SOURCE_ROOT; };
+		8B8F8BBE18572664009C571D /* test_funcs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test_funcs.c; path = ../tests/test_funcs.c; sourceTree = SOURCE_ROOT; };
+		8B8F8BBF18572664009C571D /* test_funcs.test */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test_funcs.test; path = ../tests/test_funcs.test; sourceTree = SOURCE_ROOT; };
 		8BC2EB991857149B00F5EC54 /* test.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = test.h; path = ../tests/test.h; sourceTree = SOURCE_ROOT; };
 		8BC2EB9A185714EB00F5EC54 /* common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = common.h; path = ../common.h; sourceTree = SOURCE_ROOT; };
 		8BC2EB9B1857150F00F5EC54 /* libc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = libc.h; path = ../libc.h; sourceTree = SOURCE_ROOT; };
@@ -97,8 +99,6 @@
 		8BD6C8F818570E1C001ECF64 /* test_arrays.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test_arrays.c; path = ../tests/test_arrays.c; sourceTree = SOURCE_ROOT; };
 		8BD6C8FA18570E21001ECF64 /* test_arrays.test */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test_arrays.test; path = ../tests/test_arrays.test; sourceTree = SOURCE_ROOT; };
 		8BD6C90018570E68001ECF64 /* testFuncs */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testFuncs; sourceTree = BUILT_PRODUCTS_DIR; };
-		8BD6C90918570E87001ECF64 /* test_funcs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test_funcs.c; path = ../bugs/test_funcs.c; sourceTree = SOURCE_ROOT; };
-		8BD6C90B18570E8C001ECF64 /* test_funcs.test */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test_funcs.test; path = ../bugs/test_funcs.test; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -214,8 +214,8 @@
 		8BD6C90118570E68001ECF64 /* testFuncs */ = {
 			isa = PBXGroup;
 			children = (
-				8BD6C90918570E87001ECF64 /* test_funcs.c */,
-				8BD6C90B18570E8C001ECF64 /* test_funcs.test */,
+				8B8F8BBE18572664009C571D /* test_funcs.c */,
+				8B8F8BBF18572664009C571D /* test_funcs.test */,
 			);
 			path = testFuncs;
 			sourceTree = "<group>";
@@ -378,7 +378,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8BD6C90A18570E87001ECF64 /* test_funcs.c in Sources */,
+				8B8F8BC018572664009C571D /* test_funcs.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

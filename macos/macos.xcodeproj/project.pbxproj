@@ -87,6 +87,11 @@
 		8B70642F184C8D24006F2128 /* testStrings */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = testStrings; path = testArrays; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B706CB318570DB100FC2D1C /* test_analyzer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test_analyzer.c; path = ../tests/test_analyzer.c; sourceTree = SOURCE_ROOT; };
 		8B706CB518570DB800FC2D1C /* test_analyzer.test */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test_analyzer.test; path = ../tests/test_analyzer.test; sourceTree = SOURCE_ROOT; };
+		8BC2EB991857149B00F5EC54 /* test.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = test.h; path = ../tests/test.h; sourceTree = SOURCE_ROOT; };
+		8BC2EB9A185714EB00F5EC54 /* common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = common.h; path = ../common.h; sourceTree = SOURCE_ROOT; };
+		8BC2EB9B1857150F00F5EC54 /* libc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = libc.h; path = ../libc.h; sourceTree = SOURCE_ROOT; };
+		8BC2EBA0185717A700F5EC54 /* interpreter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = interpreter.h; path = ../interpreter.h; sourceTree = SOURCE_ROOT; };
+		8BC2EBA1185717B200F5EC54 /* analyzer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = analyzer.h; path = ../analyzer.h; sourceTree = SOURCE_ROOT; };
 		8BD6C8F418570E00001ECF64 /* test_prescan.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test_prescan.c; path = ../tests/test_prescan.c; sourceTree = SOURCE_ROOT; };
 		8BD6C8F618570E06001ECF64 /* test_prescan.test */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test_prescan.test; path = ../tests/test_prescan.test; sourceTree = SOURCE_ROOT; };
 		8BD6C8F818570E1C001ECF64 /* test_arrays.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test_arrays.c; path = ../tests/test_arrays.c; sourceTree = SOURCE_ROOT; };
@@ -162,6 +167,11 @@
 		8B34BEEE184C813400CFDD66 /* smallC */ = {
 			isa = PBXGroup;
 			children = (
+				8BC2EBA1185717B200F5EC54 /* analyzer.h */,
+				8BC2EBA0185717A700F5EC54 /* interpreter.h */,
+				8BC2EB9B1857150F00F5EC54 /* libc.h */,
+				8BC2EB9A185714EB00F5EC54 /* common.h */,
+				8BC2EB991857149B00F5EC54 /* test.h */,
 				8B34BEF8184C818E00CFDD66 /* commonEnums.h */,
 				8B34BEF9184C818E00CFDD66 /* externVars.h */,
 				8B34BEFA184C818E00CFDD66 /* interpreter.c */,

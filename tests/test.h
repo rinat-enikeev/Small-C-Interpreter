@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   }
   prog--; /* возврат к открывающейся скобке ( */
   strcpy(token, "main");
-  call(); /* начало интерпритации main() */
+  call(); /* начало интерпретации main() */
   // free memory from global arrays
   //free_arr();
   testcase();

@@ -19,6 +19,11 @@
 			<key>orderHint</key>
 			<integer>3</integer>
 		</dict>
+		<key>testFuncs.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
 		<key>testPrescan.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -53,6 +58,11 @@
 			<true/>
 		</dict>
 		<key>8B70642E184C8D24006F2128</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8BD6C8FF18570E68001ECF64</key>
 		<dict>
 			<key>primary</key>
 			<true/>

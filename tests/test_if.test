@@ -1,16 +1,16 @@
 int a,b;
 int main() {
-  a=0;
-  b=1;
-  if(a) {
-    a=5;
-  } else {
-    a=10;
-  }
-  if(b==1) {
-    b=15;
-  } else {
-    b=20;
-  }
-  return 0;
+	a=0;
+	b=1;
+	if(a) {
+		a=5;
+	} else {
+		a=10;
+	}
+	if(b==1) {
+		b=15;
+	} else {
+		b=20;
+	}
+	return 0;
 }

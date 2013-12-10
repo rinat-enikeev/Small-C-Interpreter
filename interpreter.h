@@ -3,8 +3,8 @@
 /* Функции и переменные в интерпретаторе */
 struct var_type;
 struct commands {
-  char command[20];
-  char tok;
+	char command[20];
+	char tok;
 };
 extern struct commands table[];
 void decl_local_array(void);

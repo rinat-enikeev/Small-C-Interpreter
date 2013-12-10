@@ -1,23 +1,23 @@
 int global_array[3];
 int foo(int arr[], int b) {
-  arr[0] = b;
-  return 0;
+	arr[0] = b;
+	return 0;
 }
 int main() {
-  int q;
-  int local_array[8];
-  local_array[0] = 777;
-  q = local_array[0];
-  print("q ==");
-  print(q);
-  puts("");
-  print(local_array[0]==777);
-  puts("");
-  foo(local_array, 555);
-  print(local_array[0]==555);
-  puts("");
-  foo(global_array, 111);
-  print(global_array[0]);
-  puts("");
-  return 0;
+	int q;
+	int local_array[8];
+	local_array[0] = 777;
+	q = local_array[0];
+	print("q ==");
+	print(q);
+	puts("");
+	print(local_array[0]==777);
+	puts("");
+	foo(local_array, 555);
+	print(local_array[0]==555);
+	puts("");
+	foo(global_array, 111);
+	print(global_array[0]);
+	puts("");
+	return 0;
 }

@@ -371,9 +371,14 @@ void call(void) {
 /* Заталкивание аргументов функций в стек
  локальных переменных. */
 void get_args(void) {
-  int value, count, temp[NUM_PARAMS];
+  int value, countVars, tempVars[NUM_PARAMS]; // in reverse order
   struct var_type i;
-  count = 0;
+
+  struct array_type* tempArrs[NUM_PARAMS]; // todo: summ of arr and int params
+
+  int countArrs = 0;
+  countVars = 0;
+
   get_token();
   if(*token != '(') {
     sntx_err(PAREN_EXPECTED);
@@ -390,7 +395,8 @@ void get_args(void) {
     if(is_arr(token)) {
       get_token();         // '[' or ','
       if(*token == ',') {  // array is passed by pointer
-        local_arr_push(get_arr(copy));
+        tempArrs[countArrs] = get_arr(copy);
+        countArrs++;
         continue;        // array was pushed into local array stack
       } else {
         prog = tempProg;
@@ -400,17 +406,23 @@ void get_args(void) {
     }
     free(copy);
     eval_exp(&value);
-    temp[count] = value;  /* временное запоминание */
+    tempVars[countVars] = value;  /* временное запоминание */
     get_token();
-    count++;
+    countVars++;
   } while(*token == ',');
-  count--;
+
+  countVars--;
   /* затолкнуть в local_var_stack в обратном порядке */
-  for(; count>=0; count--) {
-    i.value = temp[count];
+  for(; countVars >=0; countVars--) {
+    i.value = tempVars[countVars];
     i.v_type = ARG;
     local_var_push(i);
   }
+  countArrs--;
+  for (; countArrs >= 0; countArrs--) {
+      local_arr_push(tempArrs[countArrs]);
+  }
+
 }
 /* Получение параметров функции. */
 void get_params(void) {
